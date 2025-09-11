@@ -7,14 +7,31 @@ class ActividadesLudicasController {
  private service = new ActividadLudicaService()
 
   async crearActividad({ request, response }: HttpContext) {
-    try {
-      const empresaId = (request as any).empresaId
-      const datos = request.only(['nombre_usuario', 'nombre_actividad', 'fecha_actividad', 'imagen_video', 'archivo_adjunto', 'descripcion']) as any
-      datos.id_empresa = (request as any).empresaId
-      return this.service.crear(empresaId, datos)
-    } catch (error) {
-      return response.json({ error: error.message, messages })
+  try {
+    // Suponiendo que tienes middleware que coloca el usuario logueado en request.usuario
+    const usuario = (request as any).usuarioLogueado;
+
+    if (!usuario) {
+      return response.status(401).json({ error: 'Usuario no autenticado' });
     }
+
+    // Solo los campos del formulario
+    const datos = request.only([
+      'nombre_usuario',
+      'nombre_actividad',
+      'fecha_actividad',
+      'imagen_video',
+      'archivo_adjunto',
+      'descripcion'
+    ]) as any;
+
+    // Asignar IDs automáticamente
+    datos.id_usuario = usuario.id;
+    datos.id_empresa = usuario.id_empresa; // opcional, según tu lógica
+
+    return this.service.crear(usuario.id_empresa, datos);
+  } catch (error) {
+    return response.status(500).json({ error: error.message, messages });
   }
 
   async listarActividades({ response, request }: HttpContext) {
