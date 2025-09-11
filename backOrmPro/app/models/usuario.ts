@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import hash from '@adonisjs/core/services/hash'
-import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
+
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Empresa from './empresa.js'
@@ -13,10 +13,7 @@ import ListaChequeo from './lista_chequeo.js'
 import ActividadLudica from './actividad_ludica.js'
 
 
-const AuthUsuario = withAuthFinder(() => hash.use('scrypt'), {
-  uids: ['correo_electronico'],    // identificador para login
-  passwordColumnName: 'contrasena' // campo donde está la contraseña
-})
+
 
 export default class Usuario extends BaseModel {
   @column({ isPrimary: true })
