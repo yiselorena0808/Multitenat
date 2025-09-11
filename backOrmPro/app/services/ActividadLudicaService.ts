@@ -2,12 +2,13 @@ import ActividadLudica from '#models/actividad_ludica'
 
 class ActividadLudicaService {
   async crear(empresaId:number, datos:any) {
-     const actividad = await ActividadLudica.create({
-      ...datos,
-      id_empresa: empresaId,
-     })
-
-     return actividad
+  console.log('Service.crear | datos recibidos:', datos, 'empresaId:', empresaId);
+  const actividad = await ActividadLudica.create({
+    ...datos,
+    id_empresa: empresaId
+  });
+  console.log('Service.crear | actividad creada:', actividad);
+  return actividad;
   }
 
   async listar(empresaId: number) {
