@@ -30,7 +30,6 @@ server.use([
   () => import('@adonisjs/cors/cors_middleware'),
 
 
-  () => import('../app/middleware/EmpresaMildeware.js'),
 ])
 
 
@@ -48,6 +47,7 @@ router.use([() => import('@adonisjs/core/bodyparser_middleware'), () => import('
  */
 
 export const middleware = router.named({
-  auth: () => import('#middleware/auth_middleware')
+  auth: () => import('#middleware/auth_middleware'),
+  empresa: () => import('#middleware/EmpresaMildeware')
 })
 

@@ -1,11 +1,13 @@
 import Route from "@adonisjs/core/services/router"
 import ListaChequeoController from "../../app/controller/ListaChequeoController.js"
-//import AuthJwt from "../../app/middleware/auth_jwt.js"
+import empresaMiddleware from "#middleware/EmpresaMildeware"
+import AuthMiddleware from "#middleware/auth_middleware"
 
 const lista = new ListaChequeoController()
-//const authJwt = new AuthJwt()
+const auth = new AuthMiddleware()
+const empresa = new empresaMiddleware()
 
-Route.post('/crearListaChequeo', lista.crearLista)//.use(authJwt.handle.bind(authJwt))
-Route.get('/listarListasChequeo', lista.listarListas)//.use(authJwt.handle.bind(authJwt))
-Route.put('/actualizarListaChequeo/:id', lista.actualizarLista)//.use(authJwt.handle.bind(authJwt))
-Route.delete('/eliminarListaChequeo/:id', lista.eliminarLista)//.use(authJwt.handle.bind(authJwt))
+Route.post('/crearListaChequeo', lista.crearLista).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
+Route.get('/listarListasChequeo', lista.listarListas).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
+Route.put('/actualizarListaChequeo/:id', lista.actualizarLista).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
+Route.delete('/eliminarListaChequeo/:id', lista.eliminarLista).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])

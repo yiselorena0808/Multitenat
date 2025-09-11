@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon'
 import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import hash from '@adonisjs/core/services/hash'
-
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Empresa from './empresa.js'
