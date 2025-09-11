@@ -9,34 +9,29 @@ class ActividadesLudicasController {
   async crearActividad({ request, response }: HttpContext) {
   try {
     const usuario = (request as any).usuarioLogueado;
-
     if (!usuario) {
       return response.status(401).json({ error: 'Usuario no autenticado' });
     }
 
     const datos = request.only([
-      'nombre_usuario',
       'nombre_actividad',
       'fecha_actividad',
+      'descripcion',
       'imagen_video',
-      'archivo_adjunto',
-      'descripcion'
+      'archivo_adjunto'
     ]) as any;
 
+    // Asignar automáticamente el id y el nombre del usuario
     datos.id_usuario = usuario.id;
-    datos.id_empresa = usuario.id_empresa;
-
-    console.log('Datos antes de crear:', datos);
-    console.log('empresaId:', usuario.id_empresa);
+    datos.nombre_usuario = usuario.nombre;
 
     const actividad = await this.service.crear(usuario.id_empresa, datos);
-    console.log('Actividad creada:', actividad);
 
     return response.status(201).json({ mensaje: 'Actividad creada correctamente', actividad });
   } catch (error) {
-    console.error('Error en crearActividad:', error);
     return response.status(500).json({ error: error.message });
   }
+
   async listarIdActividad({ params, response, request }: HttpContext) {
     try {
       const id = params.id
