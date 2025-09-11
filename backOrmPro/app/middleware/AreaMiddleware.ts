@@ -4,13 +4,15 @@ import TenantStorage from '#services/TenantStorage'
 
 
 export default class areaMiddleware{
- async handle({ request, response }: HttpContext, next: () => Promise<void>) {
-  const tenantId = Number(request.header('x-area-id'))
-
+ async handle({ request, response, auth }: HttpContext, next: () => Promise<void>) {
+  // Intentar obtener areaId del usuario autenticado
+  let tenantId = auth?.user?.id_area
   if (!tenantId) {
-    return response.badRequest({ error: 'Area ID is r0equired in headers' })
+    tenantId = Number(request.header('x-area-id'))
   }
-
+  if (!tenantId) {
+    return response.badRequest({ error: 'Area ID is required (header or user)' })
+  }
   try {
     TenantStorage.setTenantId(tenantId)
   } catch {
@@ -18,7 +20,6 @@ export default class areaMiddleware{
       error: 'El tenant context no se inició (el tenant Empresa debe ejecutarse primero)',
     })
   }
-
   ;(request as any).tenantId = tenantId
   await next()
 }
