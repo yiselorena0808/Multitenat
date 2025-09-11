@@ -21,8 +21,8 @@ class ActividadesLudicasController {
         'archivo_adjunto'
       ]) as any;
 
-      datos.id_usuario = usuario.id;
-      datos.nombre_usuario = usuario.nombre;
+      datos.id_usuario = usuario.id_usuario;
+      datos.nombre_usuario = usuario.nombre_usuario;
 
       const actividad = await this.service.crear(usuario.id_empresa, datos);
       return response.status(201).json({ mensaje: 'Actividad creada correctamente', actividad });
