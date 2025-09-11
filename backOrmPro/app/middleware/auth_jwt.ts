@@ -22,8 +22,8 @@ export default class AuthJwt {
 
       // Guardar datos del usuario en request
       request.usuarioLogueado = {
-        id: jwtDecoded.id,
-        nombre: jwtDecoded.nombre,
+        id_usuario: jwtDecoded.id_usuario,
+        nombre_usuario: jwtDecoded.nombre_usuario,
         id_empresa: jwtDecoded.id_empresa // si tu token incluye la empresa
       };
 
