@@ -1,7 +1,7 @@
 import ActividadLudicaService from '#services/ActividadLudicaService'
 import { messages } from '@vinejs/vine/defaults'
 import type { HttpContext} from '@adonisjs/core/http'
-import auth from '@adonisjs/auth/services/main'
+
 
 
 class ActividadesLudicasController {
@@ -89,6 +89,6 @@ async actualizarActividad({ request, response, params }: HttpContext) {
     return response.status(500).json({ error: error.message, messages });
   }
 }
-
+}
 
 export default ActividadesLudicasController
