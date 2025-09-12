@@ -4,13 +4,23 @@ import type { HttpContext} from '@adonisjs/core/http'
 
 const gestionService = new GestionService()
 
+
 class GestionController {
-  async crearGestion({ request, response }: HttpContext) {
+  getEmpresaId(request: any, auth?: any) {
+    return auth?.user?.id_empresa || request.empresaId
+  }
+
+  getAreaId(request: any, auth?: any) {
+    return auth?.user?.id_area || request.areaId
+  }
+
+  async crearGestion({ request, response, auth }: HttpContext) {
     try {
-      const empresaId = (request as any).empresaId
+      const empresaId = this.getEmpresaId(request, auth)
+      const areaId = this.getAreaId(request, auth)
       const datos = request.only(['id_usuario', 'nombre', 'apellido', 'cedula', 'cargo', 'productos', 'cantidad', 'importancia', 'estado']) as any
-      datos.id_empresa = (request as any).empresaId
-      datos.id_area = (request as any).areaId
+      datos.id_empresa = empresaId
+      datos.id_area = areaId
       const nueva = await gestionService.crear(datos, empresaId)
       return response.json({ msj: 'gestion creada', datos: nueva })
     } catch (error) {
@@ -18,9 +28,9 @@ class GestionController {
     }
   }
 
-  async listarGestiones({ response, request }: HttpContext) {
+  async listarGestiones({ response, request, auth }: HttpContext) {
     try {
-      const empresaId = (request as any).empresaId
+      const empresaId = this.getEmpresaId(request, auth)
       const gestiones = await gestionService.listar(empresaId)
       return response.json({ msj: 'listado', datos: gestiones })
     } catch (error) {
@@ -28,9 +38,9 @@ class GestionController {
     }
   }
 
-  async actualizarEstado({ params, request, response }: HttpContext) {
+  async actualizarEstado({ params, request, response, auth }: HttpContext) {
     try {
-      const empresaId = (request as any).empresaId
+      const empresaId = this.getEmpresaId(request, auth)
       const datos = request.body()
       const actualizado = await gestionService.actualizar(params.id, datos, empresaId)
       return response.json({ msj: 'estado actualizado', datos: actualizado })
@@ -39,9 +49,9 @@ class GestionController {
     }
   }
 
-  async eliminarGestion({ params, response, request }: HttpContext) {
+  async eliminarGestion({ params, response, request, auth }: HttpContext) {
     try {
-      const empresaId = (request as any).empresaId
+      const empresaId = this.getEmpresaId(request, auth)
       const resp = await gestionService.eliminar(params.id, empresaId)
       return response.json({ msj: resp })
     } catch (error) {
