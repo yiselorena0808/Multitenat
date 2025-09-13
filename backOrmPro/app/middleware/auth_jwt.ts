@@ -24,7 +24,7 @@ export default class AuthJwt {
       console.log('Token decodificado:', jwtDecoded); // ← Para debug
 
       // Guardar datos del usuario en request
-      request.usuarioLogueado = {
+      (request as any).usuarioLogueado = {
         id_usuario: jwtDecoded.id_usuario,
         nombre_usuario: jwtDecoded.nombre_usuario,
         id_empresa: jwtDecoded.id_empresa
