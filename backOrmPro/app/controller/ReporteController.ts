@@ -1,6 +1,8 @@
+
 import ReporteService from '#services/ReporteService'
 import { messages } from '@vinejs/vine/defaults'
 import type { HttpContext} from '@adonisjs/core/http'
+import cloudinary from '#config/cloudinary';
 
 
 const reporteService = new ReporteService()
@@ -15,6 +17,34 @@ class ReportesController {
       const datos = request.only(['nombre_usuario', 'cargo', 'cedula', 'fecha', 'lugar', 'descripcion', 'imagen', 'archivos']) as any;
       datos.id_usuario = usuario.id_usuario;
       datos.nombre_usuario = usuario.nombre_usuario;
+
+      // Archivos
+      const imagen = request.file('imagen', {
+        size: '20mb',
+        extnames: ['jpg', 'png', 'jpeg', 'gif'],
+      })
+      const archivos = request.file('archivos', {
+        size: '10mb',
+        extnames: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
+      })
+
+      // Subida a Cloudinary si existen
+      if (imagen && imagen.tmpPath) {
+        const upload = await cloudinary.uploader.upload(imagen.tmpPath, {
+          folder: 'reportes',
+          resource_type: 'auto',
+        })
+        datos.imagen = upload.secure_url
+      }
+
+      if (archivos && archivos.tmpPath) {
+        const upload = await cloudinary.uploader.upload(archivos.tmpPath, {
+          folder: 'reportes',
+          resource_type: 'auto',
+        })
+        datos.archivos = upload.secure_url
+      }
+
       const empresaId = usuario.id_empresa;
       return response.json(await reporteService.crear(empresaId, datos));
     } catch (error) {

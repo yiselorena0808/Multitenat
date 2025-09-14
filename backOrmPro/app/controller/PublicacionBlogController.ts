@@ -1,6 +1,8 @@
+
 import BlogService from '#services/PublicacionBlogService'
 import { messages } from '@vinejs/vine/defaults'
 import type { HttpContext} from '@adonisjs/core/http'
+import cloudinary from '#config/cloudinary';
 
 
 const blogService = new BlogService()
@@ -19,6 +21,34 @@ class BlogController {
       const datos = request.only(['nombre_usuario', 'titulo', 'fecha_actividad', 'descripcion', 'imagen', 'archivo']) as any;
       datos.id_usuario = usuario.id_usuario;
       datos.nombre_usuario = usuario.nombre_usuario;
+
+      // Archivos
+      const imagen = request.file('imagen', {
+        size: '20mb',
+        extnames: ['jpg', 'png', 'jpeg', 'gif'],
+      })
+      const archivo = request.file('archivo', {
+        size: '10mb',
+        extnames: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
+      })
+
+      // Subida a Cloudinary si existen
+      if (imagen && imagen.tmpPath) {
+        const upload = await cloudinary.uploader.upload(imagen.tmpPath, {
+          folder: 'blog',
+          resource_type: 'auto',
+        })
+        datos.imagen = upload.secure_url
+      }
+
+      if (archivo && archivo.tmpPath) {
+        const upload = await cloudinary.uploader.upload(archivo.tmpPath, {
+          folder: 'blog',
+          resource_type: 'auto',
+        })
+        datos.archivo = upload.secure_url
+      }
+
       const empresaId = usuario.id_empresa;
       return response.json(await blogService.crear(empresaId, datos));
     } catch (error) {

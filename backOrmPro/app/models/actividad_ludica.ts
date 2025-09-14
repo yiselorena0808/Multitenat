@@ -25,10 +25,10 @@ export default class ActividadLudica extends BaseModel {
   declare descripcion: string
 
   @column()
-  declare imagen_video: string
+  declare imagen_video: string | null
 
   @column()
-  declare archivo_adjunto: string
+  declare archivo_adjunto: string | null
 
   @column()
   declare id_empresa: number

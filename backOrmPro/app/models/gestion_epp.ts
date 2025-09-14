@@ -1,17 +1,19 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column} from '@adonisjs/lucid/orm'
-import type {BelongsTo} from '@adonisjs/lucid/types/relations'
-import Usuario from './usuario.js'
-import Empresa from './empresa.js'
-import Area from './area.js'
+import { BaseModel, belongsTo, column, manyToMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import Usuario from '#models/usuario'
+import Empresa from '#models/empresa'
+import Area from '#models/area'
+import Producto from '#models/producto'
 
 export default class GestionEpp extends BaseModel {
-   public static table = 'gestion_epp'
+  public static table = 'gestion_epp'
+
   @column({ isPrimary: true })
   declare id: number
 
   @column()
-  declare id_usuario:number
+  declare id_usuario: number
 
   @column()
   declare nombre: string
@@ -26,10 +28,7 @@ export default class GestionEpp extends BaseModel {
   declare cargo: string
 
   @column()
-  declare productos: string
-
-  @column()
-  declare cantidad: string
+  declare cantidad: number
 
   @column()
   declare importancia: string
@@ -53,12 +52,20 @@ export default class GestionEpp extends BaseModel {
   declare updatedAt: DateTime
 
   @belongsTo(() => Usuario)
-   declare usuario: BelongsTo<typeof Usuario>
+  declare usuario: BelongsTo<typeof Usuario>
 
   @belongsTo(() => Empresa)
   declare empresa: BelongsTo<typeof Empresa>
 
-   @belongsTo(() => Area)
-   declare area: BelongsTo<typeof Area>
-  
+  @belongsTo(() => Area)
+  declare area: BelongsTo<typeof Area>
+
+  @manyToMany(() => Producto, {
+    pivotTable: 'gestion_epp_productos',
+    localKey: 'id',
+    pivotForeignKey: 'gestion_id',
+    relatedKey: 'id_producto',
+    pivotRelatedForeignKey: 'producto_id',
+  })
+  declare productos: ManyToMany<typeof Producto>
 }

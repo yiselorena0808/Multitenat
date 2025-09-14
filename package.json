@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@adonisjs/validator": "^13.0.2"
+  }
+}

@@ -1,27 +1,30 @@
-import GestionService from '#services/GestionEppService'
+import GestionEppService from '#services/GestionEppService'
 import { messages } from '@vinejs/vine/defaults'
 import type { HttpContext} from '@adonisjs/core/http'
 
-const gestionService = new GestionService()
+
+const gestionService = new GestionEppService()
 
 
 class GestionController {
   async crearGestion({ request, response }: HttpContext) {
+       const usuario = (request as any).usuarioLogueado
+    const { productosIds, cantidad, importancia, estado, fecha_creacion } =
+      request.body()
+
     try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      const areaId = usuario.id_area || (request as any).areaId;
-      const datos = request.only(['id_usuario', 'nombre', 'apellido', 'cedula', 'cargo', 'productos', 'cantidad', 'importancia', 'estado']) as any;
-      datos.id_usuario = usuario.id_usuario;
-      datos.id_empresa = empresaId;
-      datos.id_area = areaId;
-      const nueva = await gestionService.crear(datos, empresaId);
-      return response.json({ msj: 'gestion creada', datos: nueva });
-    } catch (error) {
-      return response.json({ error: error.message, messages });
+      const gestion = await gestionService.crear(
+        { cantidad, importancia, estado, fecha_creacion },
+        productosIds,
+        usuario
+      )
+
+      return response.created({
+        mensaje: 'Gestión creada correctamente',
+        datos: gestion,
+      })
+    } catch (err: any) {
+      return response.status(400).send({ mensaje: err.message })
     }
   }
 
@@ -46,8 +49,8 @@ class GestionController {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
       const empresaId = usuario.id_empresa;
-      const datos = request.body();
-      const actualizado = await gestionService.actualizar(params.id, datos, empresaId);
+      const {datos, productosIds} = request.body();
+      const actualizado = await gestionService.actualizar(params.id, datos, empresaId, productosIds);
       return response.json({ msj: 'estado actualizado', datos: actualizado });
     } catch (error) {
       return response.json({ error: error.message, messages });
