@@ -7,6 +7,9 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id_cargo')
       table.string('cargo').notNullable()
+      table.integer('id_empresa').references('id_empresa').inTable('empresas')
+        .onDelete('CASCADE').onUpdate('CASCADE')
+        .notNullable()
     })
   }
   async down() {
