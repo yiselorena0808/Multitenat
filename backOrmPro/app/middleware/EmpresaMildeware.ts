@@ -1,21 +1,19 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import TenantStorage from '#services/TenantStorage'
 
+export default class EmpresaMiddleware {
+  public async handle({ request, response }: HttpContext, next: () => Promise<void>) {
+    if (request.url().startsWith('/empresas')) {
+      await next()
+      return
+    }
 
-export default class empresaMiddleware{
- async handle({ request, response, auth }: HttpContext, next: () => Promise<void>) {
-  // Intentar obtener empresaId del usuario autenticado
-  let empresaId = auth?.user?.id_empresa
-  if (!empresaId) {
-    empresaId = Number(request.header('x-empresa-id'))
-  }
-  if (!empresaId) {
-    return response.badRequest({ error: 'Empresa ID is required (header or user)' })
-  }
-  TenantStorage.run({ empresaId }, async () => {
-    ;(request as any).empresaId = empresaId
+    const user = (request as any).user
+
+    if (!user || !user.idEmpresa) {
+      return response.unauthorized({ error: 'El usuario no tiene empresa asociada' })
+    }
+    ;(request as any).empresaId = user.idEmpresa
+
     await next()
-  })
+  }
 }
-}
-
