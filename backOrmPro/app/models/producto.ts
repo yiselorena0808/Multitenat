@@ -1,7 +1,9 @@
-import { BaseModel, column, manyToMany } from '@adonisjs/lucid/orm'
+import { BaseModel, column, manyToMany, belongsTo } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { ManyToMany } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import GestionEpp from '#models/gestion_epp'
+import Cargo from './cargo.js'
 
 export default class Producto extends BaseModel {
   public static table = 'productos'
@@ -21,6 +23,7 @@ export default class Producto extends BaseModel {
   @column()
   declare estado: boolean
 
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -35,4 +38,7 @@ export default class Producto extends BaseModel {
     pivotRelatedForeignKey: 'gestion_id',
   })
   declare gestiones: ManyToMany<typeof GestionEpp>
+
+  @belongsTo(() => Cargo)
+  declare cargo: BelongsTo<typeof Cargo>
 }

@@ -13,8 +13,8 @@ const empresa = new empresaMiddleware()
 
 
 Route.post('/crearActividadLudica', actividad.crearActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
-Route.get('/listarActividadesLudicas', actividad.listarActividades).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
+Route.get('/listarActividadesLudicas', actividad.listarIdActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
 Route.get('/idActividadLudica/:id', actividad.listarIdActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
 Route.delete('/eliminarActividadLudica/:id', actividad.eliminarActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
-Route.put('/actualizarActividadLudica/:id', actividad.actualzarActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
+Route.put('/actualizarActividadLudica/:id', actividad.actualizarActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
 
