@@ -22,8 +22,6 @@ class ActividadesLudicasController {
         'nombre_actividad',
         'fecha_actividad',
         'descripcion',
-        'imagen_video',
-        'archivo_adjunto'
       ]) as any;
 
       datos.id_usuario = usuario.id_usuario;
@@ -102,11 +100,8 @@ async actualizarActividad({ request, response, params }: HttpContext) {
     }
     
     const datos = request.only([
-      'nombre_usuario', 
       'nombre_actividad', 
       'fecha_actividad', 
-      'imagen_video', 
-      'archivo_adjunto', 
       'descripcion'
     ]);
     

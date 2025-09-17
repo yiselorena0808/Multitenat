@@ -1,121 +1,126 @@
-
-import ReporteService from '#services/ReporteService'
-import { messages } from '@vinejs/vine/defaults'
-import type { HttpContext} from '@adonisjs/core/http'
-import cloudinary from '#config/cloudinary';
-
+import type { HttpContext } from "@adonisjs/core/http"
+import ReporteService, { DatosReporte } from "#services/ReporteService"
+import cloudinary from "#config/cloudinary"
 
 const reporteService = new ReporteService()
 
-class ReportesController {
-  async crearReporte({ request, response }: HttpContext) {
+export default class ReportesController {
+  // Crear reporte
+  public async crearReporte({ request, response }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
+      const usuario = (request as any).user
+      if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
+
+      const datos: DatosReporte = {
+        cargo: request.input("cargo"),
+        cedula: request.input("cedula"),
+        fecha: request.input("fecha"),
+        lugar: request.input("lugar"),
+        descripcion: request.input("descripcion"),
+        id_usuario: usuario.id,
+        id_empresa: usuario.id_empresa,
+        nombre_usuario: usuario.nombre,
+        estado: request.input ("estado")
       }
-      const datos = request.only(['nombre_usuario', 'cargo', 'cedula', 'fecha', 'lugar', 'descripcion', 'imagen', 'archivos']) as any;
-      datos.id_usuario = usuario.id_usuario;
-      datos.nombre_usuario = usuario.nombre_usuario;
 
-      // Archivos
-      const imagen = request.file('imagen', {
-        size: '20mb',
-        extnames: ['jpg', 'png', 'jpeg', 'gif'],
-      })
-      const archivos = request.file('archivos', {
-        size: '10mb',
-        extnames: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
-      })
+      // Archivos opcionales
+      const imagenFile = request.file("imagen")
+      const archivoFile = request.file("archivos")
 
-      // Subida a Cloudinary si existen
-      if (imagen && imagen.tmpPath) {
-        const upload = await cloudinary.uploader.upload(imagen.tmpPath, {
-          folder: 'reportes',
-          resource_type: 'auto',
-        })
+      if (imagenFile && imagenFile.tmpPath) {
+        const upload = await cloudinary.uploader.upload(imagenFile.tmpPath, { folder: "reportes", resource_type: "auto" })
         datos.imagen = upload.secure_url
       }
 
-      if (archivos && archivos.tmpPath) {
-        const upload = await cloudinary.uploader.upload(archivos.tmpPath, {
-          folder: 'reportes',
-          resource_type: 'auto',
-        })
+      if (archivoFile && archivoFile.tmpPath) {
+        const upload = await cloudinary.uploader.upload(archivoFile.tmpPath, { folder: "reportes", resource_type: "auto" })
         datos.archivos = upload.secure_url
       }
 
-      const empresaId = usuario.id_empresa;
-      return response.json(await reporteService.crear(empresaId, datos));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
+      const reporte = await reporteService.crear(usuario.id_empresa, datos)
+      return response.json(reporte)
+    } catch (error: any) {
+      console.error(error)
+      return response.status(500).json({ error: "Error interno", detalle: error.message })
     }
   }
 
-  async listarReportes({ response, request }: HttpContext) {
+  // Listar reportes
+  public async listarReportes({ request, response }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
+      const usuario = (request as any).user
+      if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
+
+      const reportes = await reporteService.listar(usuario.id_empresa)
+      return response.json({ datos: reportes })
+    } catch (error: any) {
+      console.error(error)
+      return response.status(500).json({ error: "Error al listar reportes" })
+    }
+  }
+
+  // Obtener reporte por ID
+  public async listarReporteId({ request, params, response }: HttpContext) {
+    try {
+      const usuario = (request as any).user
+      if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
+
+      const reporte = await reporteService.listarId(params.id, usuario.id_empresa)
+      return response.json({ datos: reporte })
+    } catch (error: any) {
+      console.error(error)
+      return response.status(500).json({ error: "Error al obtener reporte" })
+    }
+  }
+
+  // Actualizar reporte
+  public async actualizarReporte({ params, request, response }: HttpContext) {
+    try {
+      const usuario = (request as any).user
+      if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
+
+      const datos: Partial<DatosReporte> = request.only([
+        "cargo",
+        "cedula",
+        "fecha",
+        "lugar",
+        "descripcion",
+        "estado",
+        "nombre_usuario"
+      ])
+
+      const imagenFile = request.file("imagen")
+      const archivoFile = request.file("archivos")
+
+      if (imagenFile && imagenFile.tmpPath) {
+        const upload = await cloudinary.uploader.upload(imagenFile.tmpPath, { folder: "reportes", resource_type: "auto" })
+        datos.imagen = upload.secure_url
       }
-      const empresaId = usuario.id_empresa;
-      return response.json(await reporteService.listar(empresaId));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
-    }
-  }
 
-  async listarReporteId({ params, response, request }: HttpContext) {
-    try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
+      if (archivoFile && archivoFile.tmpPath) {
+        const upload = await cloudinary.uploader.upload(archivoFile.tmpPath, { folder: "reportes", resource_type: "auto" })
+        datos.archivos = upload.secure_url
       }
-      const id = params.id;
-      const empresaId = usuario.id_empresa;
-      return response.json(await reporteService.listarId(id, empresaId));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
+
+      const reporteActualizado = await reporteService.actualizar(params.id, usuario.id_empresa, datos)
+      return response.json({ mensaje: "Reporte actualizado", datos: reporteActualizado })
+    } catch (error: any) {
+      console.error(error)
+      return response.status(500).json({ error: error.message })
     }
   }
 
-  async actualizarReporte({ params, request, response }: HttpContext) {
+  // Eliminar reporte
+  public async eliminarReporte({ params, request, response }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const id = params.id;
-      const empresaId = usuario.id_empresa;
-      const datos = request.only(['nombre_usuario', 'cargo', 'cedula', 'fecha', 'lugar', 'descripcion', 'imagen', 'archivos']);
-      return response.json(await reporteService.actualizar(id, empresaId, datos));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
-    }
-  }
+      const usuario = (request as any).user
+      if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
 
-  async eliminarReporte({ params, response, request }: HttpContext) {
-    try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const id = params.id;
-      const empresaId = usuario.id_empresa;
-      return response.json(reporteService.eliminar(id, empresaId));
-    } catch (error) {
-      return response.json({ error: error.message });
-    }
-  }
-
-  async conteoReportes({ response }: HttpContext) {
-    try {
-      const resultado = await reporteService.conteo();
-      return response.json({ msj: 'conteo realizado', datos: resultado });
-    } catch (error) {
-      return response.json({ error: error.message });
+      await reporteService.eliminar(params.id, usuario.id_empresa)
+      return response.json({ mensaje: "Reporte eliminado" })
+    } catch (error: any) {
+      console.error(error)
+      return response.status(500).json({ error: error.message })
     }
   }
 }
-
-export default ReportesController

@@ -1,20 +1,13 @@
 import Route from "@adonisjs/core/services/router"
 import ActividadesLudicasController from "../../app/controller/ActividadLudicaController.js"
-import empresaMiddleware from "#middleware/EmpresaMildeware"
-import AuthMiddleware from "#middleware/auth_middleware"
+import AuthJwt from "../../app/middleware/auth_jwt.js"
 
 
 const actividad = new ActividadesLudicasController()
-const auth = new AuthMiddleware()
-const empresa = new empresaMiddleware()
+const authJwt = new AuthJwt()
 
-
-
-
-
-Route.post('/crearActividadLudica', actividad.crearActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
-Route.get('/listarActividadesLudicas', actividad.listarIdActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
-Route.get('/idActividadLudica/:id', actividad.listarIdActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
-Route.delete('/eliminarActividadLudica/:id', actividad.eliminarActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
-Route.put('/actualizarActividadLudica/:id', actividad.actualizarActividad).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
+Route.get('/listarActividadesLudicas', actividad.listarIdActividad).use(authJwt.handle.bind(authJwt))
+Route.post('/crearActividadLudica', actividad.crearActividad).use(authJwt.handle.bind(authJwt))
+Route.put('/actualizarActividadLudica/:id', actividad.actualizarActividad).use(authJwt.handle.bind(authJwt))
+Route.delete('/eliminarActividadLudica/:id', actividad.eliminarActividad).use(authJwt.handle.bind(authJwt))
 

@@ -1,62 +1,73 @@
-import Reporte from '#models/reporte'
+import Reporte from "#models/reporte"
 
-class ReporteService {
-  async crear(empresaId:number,datos: any) {
-    const reporte = await Reporte.create({
+export interface DatosReporte {
+  id_usuario: number
+  id_empresa: number
+  nombre_usuario: string
+  cargo: string
+  cedula: string
+  fecha: string
+  lugar: string
+  descripcion: string
+  imagen?: string
+  archivos?: string
+  estado?: string
+}
+
+export default class ReporteService {
+  // Crear reporte
+  async crear(idEmpresa: number, datos: DatosReporte) {
+    const reporte = new Reporte()
+    reporte.fill({
       ...datos,
-      id_empresa: empresaId,
+      id_empresa: idEmpresa,
+      estado: datos.estado,
     })
-
+    await reporte.save()
     return reporte
   }
 
-  async listar(empresaId: number) {
-    return await Reporte.query().where('id_empresa', empresaId)
+  // Listar reportes por empresa
+  async listar(idEmpresa: number) {
+    return Reporte.query()
+      .where("id_empresa", idEmpresa)
+      .orderBy("fecha", "desc")
   }
 
-  async listarId(id_reporte: number, empresaId:number) {
-    return await Reporte.query()
-    .where('id_reporte', id_reporte)
-    .andWhere('id_empresa', empresaId)
-    .first()
+  // Listar reporte por ID y empresa
+  async listarId(id: number, idEmpresa: number) {
+    return Reporte.query()
+      .where("id", id)
+      .andWhere("id_empresa", idEmpresa)
+      .firstOrFail()
   }
 
-  async actualizar(id_reporte:number, empresaId:number, datos: any) {
-    const reporte = await Reporte.find(id_reporte)
-    if (!reporte) {
-      return {error: 'reporte no encontrado'}
-    }
-
-    if(empresaId && reporte.id_empresa !== empresaId){
-      return {error: 'No autorizado para actualizar el reporte'}
-    }
+  // Actualizar reporte
+  async actualizar(id: number, idEmpresa: number, datos: Partial<DatosReporte>) {
+    const reporte = await Reporte.query()
+      .where("id", id)
+      .andWhere("id_empresa", idEmpresa)
+      .firstOrFail()
 
     reporte.merge(datos)
     await reporte.save()
     return reporte
   }
 
-  async eliminar(id_reporte: number, empresaId:number) {
+  // Eliminar reporte
+  async eliminar(id: number, idEmpresa: number) {
     const reporte = await Reporte.query()
-    .where('id_reporte', id_reporte)
-    .andWhere('id_empresa', empresaId)
-    .first()
-
-    if (!reporte) {
-      return { error: 'Reporte no encontrado o no autorizado' }
-    }
+      .where("id", id)
+      .andWhere("id_empresa", idEmpresa)
+      .firstOrFail()
 
     await reporte.delete()
-    return { mensaje: 'Reporte eliminado correctamente' }
+    return { mensaje: "Reporte eliminado" }
   }
 
+  // Conteo total de reportes
   async conteo() {
-    const reportes = await Reporte.query()
-    return {
-      total: reportes.length,
-      reportes,
-    }
+    const result = await Reporte.query().count("* as total")
+    return result[0]
   }
 }
-
-export default ReporteService

@@ -1,17 +1,18 @@
 import ListaChequeo from '#models/lista_chequeo'
 
 class ListaChequeoService {
-  async crear(empresaId: number, datos: any) {
+  async crear(usuario:any, datos: any) {
     const lista = await ListaChequeo.create({
       ...datos,
-      id_empresa: empresaId,
+      id_empresa: usuario.id_empresa,
+      id_usuario: usuario.id_usuario,
     })
 
     return lista
   }
 
   async listar(empresaId: number) {
-    return await ListaChequeo.query().where('id_empresa', empresaId)
+    return await ListaChequeo.query().where('id_empresa', empresaId).orderBy('fecha', 'desc')
   }
 
   async listarId(id: number, empresaId: number) {
@@ -22,7 +23,7 @@ class ListaChequeoService {
   }
 
  async actualizar(id: number, empresaId:number,datos: any) {
-  const lista = await ListaChequeo.find(id) // busca por primary key
+  const lista = await this.listarId(empresaId, id) // busca por primary key
    if(!lista) {
       return {error: 'lista no encontrada'}
    }
@@ -38,11 +39,7 @@ class ListaChequeoService {
  
 
   async eliminar(id: number, empresaId: number) {
-    const lista = await ListaChequeo.query()
-    .where('id', id)
-    .andWhere('id_empresa', empresaId)
-    .first()
-
+    const lista = await this.listarId(empresaId, id)
     if(!lista) {
       return { error: 'Lista no encontrada o no autorizada' }
     }

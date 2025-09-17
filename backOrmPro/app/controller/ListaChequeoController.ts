@@ -1,83 +1,98 @@
+import type { HttpContext } from '@adonisjs/core/http'
 import ListaChequeoService from '#services/ListaChequeoService'
-import { messages } from '@vinejs/vine/defaults'
-import type { HttpContext} from '@adonisjs/core/http'
 
+const listaService = new ListaChequeoService()
 
-
-class ListaChequeoController {
-  private service = new ListaChequeoService()
-
-  async crearLista({ request, response }: HttpContext) {
+export default class ListaChequeoController {
+  public async crear({ request, response }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const datos = request.only(['id_usuario','usuario_nombre', 'fecha', 'hora', 'modelo', 'marca', 'soat', 'tecnico', 'kilometraje']) as any;
-      datos.id_usuario = usuario.id_usuario;
-      datos.usuario_nombre = usuario.nombre_usuario;
-      const empresaId = usuario.id_empresa;
-      return response.json(await this.service.crear(empresaId, datos));
+      const usuario = (request as any).user
+      if (!usuario) return response.unauthorized({ error: 'Usuario no autenticado' })
+
+      const datos = request.only([
+        'fecha',
+        'hora',
+        'modelo',
+        'marca',
+        'soat',
+        'tecnico',
+        'kilometraje',
+      ])
+
+      const lista = await listaService.crear(datos, usuario)
+
+      return response.json({ message: 'Lista creada correctamente', datos: lista })
     } catch (error) {
-      return response.json({ error: error.message, messages });
+      console.error(error)
+      return response.internalServerError({ error: 'Error creando la lista de chequeo' })
     }
   }
 
-  async listarListas({ response, request }: HttpContext) {
+  public async listar({ response, request }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      return response.json(await this.service.listar(empresaId));
+      const usuario = (request as any).user
+      if (!usuario) return response.unauthorized({ error: 'Usuario no autenticado' })
+
+      const listas = await listaService.listar(usuario.id_empresa)
+      return response.json({ datos: listas })
     } catch (error) {
-      return response.json({ error: error.message, messages });
+      console.error(error)
+      return response.internalServerError({ error: 'Error al listar las listas de chequeo' })
     }
   }
 
-  async listarListasId({ response, request, params }: HttpContext) {
+  public async listarPorId({ response, request, params }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      const id = params.id;
-      return response.json(await this.service.listarId(id, empresaId));
+      const usuario = (request as any).user
+      if (!usuario) return response.unauthorized({ error: 'Usuario no autenticado' })
+
+      const lista = await listaService.listarId(usuario.id_empresa, params.id)
+      if (!lista) return response.notFound({ error: 'Lista no encontrada' })
+
+      return response.json({ datos: lista })
     } catch (error) {
-      return response.json({ error: error.message, messages });
+      console.error(error)
+      return response.internalServerError({ error: 'Error al obtener la lista de chequeo' })
     }
   }
 
-  async actualizarLista({ request, response, params }: HttpContext) {
+  public async actualizar({ request, response, params }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      const id = params.id;
-      const datos = request.only(['id_usuario','usuario_nombre', 'fecha', 'hora', 'modelo', 'marca', 'soat', 'tecnico', 'kilometraje']);
-      return response.json(await this.service.actualizar(id, empresaId, datos));
+      const usuario = (request as any).user
+      if (!usuario) return response.unauthorized({ error: 'Usuario no autenticado' })
+
+      const datos = request.only([
+        'fecha',
+        'hora',
+        'modelo',
+        'marca',
+        'soat',
+        'tecnico',
+        'kilometraje',
+      ])
+
+      const lista = await listaService.actualizar(usuario.id_empresa, params.id, datos)
+      if (!lista) return response.notFound({ error: 'Lista no encontrada' })
+
+      return response.json({ message: 'Lista actualizada correctamente', datos: lista })
     } catch (error) {
-      return response.json({ error: error.message, messages });
+      console.error(error)
+      return response.internalServerError({ error: 'Error al actualizar la lista de chequeo' })
     }
   }
 
-  async eliminarLista({ params, response, request }: HttpContext) {
+  public async eliminar({ response, request, params }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      const id = params.id;
-      return response.json(this.service.eliminar(id, empresaId));
+      const usuario = (request as any).user
+      if (!usuario) return response.unauthorized({ error: 'Usuario no autenticado' })
+
+      const eliminado = await listaService.eliminar(usuario.id_empresa, params.id)
+      if (!eliminado) return response.notFound({ error: 'Lista no encontrada' })
+
+      return response.json({ message: 'Lista eliminada correctamente' })
     } catch (error) {
-      return response.json({ error: error.message, messages });
+      console.error(error)
+      return response.internalServerError({ error: 'Error al eliminar la lista de chequeo' })
     }
   }
 }
-
-export default ListaChequeoController
