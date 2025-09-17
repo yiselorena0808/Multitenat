@@ -12,3 +12,4 @@ Route.post('/crearCar', cargo.crearCargo).middleware([auth.handle.bind(auth), em
 Route.get('/listarCarId', cargo.listarCargoId).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
 Route.put('/actCar', cargo.actualizarCargo).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
 Route.delete('/eliminarCar', cargo.eliminarCargo).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
+
