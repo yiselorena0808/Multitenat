@@ -50,4 +50,11 @@ export default class CargoService {
       await cargo.delete()
       return { mensaje: 'Cargo eliminado correctamente'}
     }
+    
+    async  asociarProductosACargo(cargoId: number, productosIds: number[]) {
+    const cargo = await Cargo.findOrFail(cargoId)
+    await cargo.related('productos').attach(productosIds)
+    await cargo.load('productos')
+    return cargo
+     }
 }

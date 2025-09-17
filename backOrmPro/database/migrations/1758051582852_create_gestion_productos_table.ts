@@ -1,18 +1,18 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
 
-export default class extends BaseSchema {
-  protected tableName = 'gestion_productos'
+export default class GestionEppProductos extends BaseSchema {
+  protected tableName = 'gestion_epp_productos'
 
-  async up() {
+  public async up () {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-
-      table.timestamp('created_at')
-      table.timestamp('updated_at')
+      table.integer('gestion_id').unsigned().references('id').inTable('gestion_epp').onDelete('CASCADE')
+      table.integer('producto_id').unsigned().references('id').inTable('productos').onDelete('CASCADE')
+      table.timestamps(true)
     })
   }
 
-  async down() {
+  public async down () {
     this.schema.dropTable(this.tableName)
   }
 }

@@ -79,4 +79,20 @@ export default class CargoController {
       return response.json({ error: error.message, messages });
     }
   }
+
+  async asociarProductos({ params, request, response }: HttpContext) {
+    try {
+      const cargoId = params.id;
+      const productosIds = request.input('productosIds')
+
+      const cargo = await cargoservice.asociarProductosACargo(cargoId, productosIds);
+
+      return response.json({
+        mensaje: 'Productos asociados al cargo correctamente',
+        datos: cargo,
+      });
+    } catch (error) {
+      return response.status(400).send({ mensaje: error.message });
+    }
+  }
 }
