@@ -1,39 +1,37 @@
-import Jwt from 'jsonwebtoken';
 import type { HttpContext } from '@adonisjs/core/http'
+import Jwt from 'jsonwebtoken'
 
-const SECRET = process.env.jwt_secret || 'sstrict';
+const SECRET = process.env.JWT_SECRET || 'sstrict'
 
-export default class AuthJwt {
-  async handle({ request, response }: HttpContext, next: any) {
-    const authheader = request.header('Authorization');
+export default class AuthJwtMiddleware {
+  public async handle({ request, response }: HttpContext, next: () => Promise<void>) {
+    const authHeader = request.header('Authorization')
 
-    if (!authheader) {
-      return response.unauthorized({ message: 'Authorization header missing' });
-    }
-
-    // CORREGIDO: agregar espacio después de 'Bearer'
-    const token = authheader.replace('Bearer ', '').trim();
-
-    if (!token) {
-      return response.unauthorized({ message: 'Falta un token' });
+    if (!authHeader) {
+      return response.unauthorized({ error: 'Falta el token' })
     }
 
     try {
-      const jwtDecoded = Jwt.verify(token, SECRET) as any;
-      
-      console.log('Token decodificado:', jwtDecoded); // ← Para debug
+      const token = authHeader.replace('Bearer ', '').trim()
+      const decoded = Jwt.verify(token, SECRET) as any
 
-      // Guardar datos del usuario en request
-      (request as any).usuarioLogueado = {
-        id_usuario: jwtDecoded.id_usuario,
-        nombre_usuario: jwtDecoded.nombre_usuario,
-        id_empresa: jwtDecoded.id_empresa
-      };
+      const id = decoded.id
+      const id_empresa = decoded.id_empresa ?? decoded.idEmpresa
 
-      await next();
+      if (!id || !id_empresa) {
+        return response.unauthorized({ error: 'Token inválido o incompleto' })
+      }
+
+      ;(request as any).user = {
+        id,
+        correoElectronico: decoded.correoElectronico,
+        id_empresa,
+        nombre: decoded.nombre,
+      }
+
+      await next()
     } catch (error) {
-      console.error('Error verifying token:', error); // ← Para debug
-      return response.unauthorized({ message: 'Token inválido' });
+      return response.unauthorized({ error: 'Token inválido' })
     }
   }
 }
