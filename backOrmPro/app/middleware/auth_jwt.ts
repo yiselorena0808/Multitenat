@@ -16,9 +16,10 @@ export default class AuthJwtMiddleware {
       const decoded = Jwt.verify(token, SECRET) as any
 
       const id = decoded.id
+      // id_empresa es opcional
       const id_empresa = decoded.id_empresa ?? decoded.idEmpresa
 
-      if (!id || !id_empresa) {
+      if (!id) {
         return response.unauthorized({ error: 'Token inválido o incompleto' })
       }
 
