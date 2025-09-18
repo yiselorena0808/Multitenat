@@ -11,9 +11,12 @@ export default class AuthJwtMiddleware {
       return response.unauthorized({ error: 'Falta el token' })
     }
 
+    console.log('Auth Header:', authHeader) // Depuración del encabezado
+
     try {
       const token = authHeader.replace('Bearer ', '').trim()
       const decoded = Jwt.verify(token, SECRET) as any
+      console.log('Decoded Token:', decoded) // Depuración del token decodificado
 
       const id = decoded.id
       // id_empresa es opcional
@@ -31,6 +34,7 @@ export default class AuthJwtMiddleware {
       }
 
       await next()
+      
     } catch (error) {
       return response.unauthorized({ error: 'Token inválido' })
     }
