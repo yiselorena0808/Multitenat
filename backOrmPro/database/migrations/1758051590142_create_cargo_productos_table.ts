@@ -7,7 +7,7 @@ export default class CargoProductos extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       table.integer('cargo_id').unsigned().references('id_cargo').inTable('cargos').onDelete('CASCADE')
-      table.integer('producto_id').unsigned().references('id').inTable('productos').onDelete('CASCADE')
+      table.integer('producto_id').unsigned().references('id_producto').inTable('productos').onDelete('CASCADE')
       table.timestamps(true)
     })
   }

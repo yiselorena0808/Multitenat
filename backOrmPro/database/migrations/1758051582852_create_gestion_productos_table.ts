@@ -7,7 +7,7 @@ export default class GestionEppProductos extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       table.integer('gestion_id').unsigned().references('id').inTable('gestion_epp').onDelete('CASCADE')
-      table.integer('producto_id').unsigned().references('id').inTable('productos').onDelete('CASCADE')
+      table.integer('producto_id').unsigned().references('id_producto').inTable('productos').onDelete('CASCADE')
       table.timestamps(true)
     })
   }
