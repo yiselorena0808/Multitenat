@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Usuario from '#models/usuario'
 import hash from '@adonisjs/core/services/hash'
+import Jwt from 'jsonwebtoken'
 
 export default class AuthController {
 
@@ -17,13 +18,20 @@ export default class AuthController {
       return response.unauthorized({ error: 'Credenciales inválidas' })
     }
 
-  // Crear token usando el provider
-  const token = await Usuario.accessTokens.create(usuario)
+    // Crear JWT válido para el middleware
+    const SECRET = process.env.JWT_SECRET || 'sstrict'
+    const payload = {
+      id: usuario.id,
+      id_empresa: usuario.id_empresa,
+      correoElectronico: usuario.correo_electronico,
+      nombre: usuario.nombre,
+    }
+    const token = Jwt.sign(payload, SECRET, { expiresIn: '1d' })
 
     // Respuesta exitosa
     return response.ok({
       message: 'Login exitoso',
-      token: token, // 🔑 Aquí ya tienes el token
+      token: token, // JWT válido
       user: {
         id: usuario.id,
         nombre: usuario.nombre,
