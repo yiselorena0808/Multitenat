@@ -1,6 +1,6 @@
 import PasswordResetToken from '#models/password_reset_token'
 import Usuario from '#models/usuario'
-import SendGridService from '#services/SendGridService'
+import { sendBrevoEmail } from '#services/BrevoService'
 import { randomBytes } from 'crypto'
 import { DateTime } from 'luxon'
 import type { HttpContext } from '@adonisjs/core/http'
@@ -19,10 +19,9 @@ export default class PasswordController {
       token,
       created_at: DateTime.now(),
     })
-    // Enviar correo con el enlace
-    await SendGridService.send({
+    // Enviar correo con el enlace usando Brevo
+    await sendBrevoEmail({
       to: usuario.correo_electronico,
-      from: 'no-reply@tusistema.com',
       subject: 'Recuperación de contraseña',
       text: `Haz clic en el siguiente enlace para restablecer tu contraseña: https://tusistema.com/reset-password?token=${token}`,
     })
