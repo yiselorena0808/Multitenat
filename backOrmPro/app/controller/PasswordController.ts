@@ -1,6 +1,7 @@
 import PasswordResetToken from '#models/password_reset_token'
 import Usuario from '#models/usuario'
 import { sendBrevoEmail } from '#services/BrevoService'
+import hash from '@adonisjs/core/services/hash'
 import { randomBytes } from 'crypto'
 import { DateTime } from 'luxon'
 import type { HttpContext } from '@adonisjs/core/http'
@@ -40,7 +41,7 @@ export default class PasswordController {
       return response.notFound({ error: 'Usuario no encontrado' })
     }
   console.error('Contraseña antes:', usuario.contrasena)
-  usuario.contrasena = contrasena
+  usuario.contrasena = await hash.make(contrasena)
   await usuario.save()
   console.error('Contraseña después:', usuario.contrasena)
   await resetToken.delete()
