@@ -77,6 +77,7 @@ export default class Usuario extends BaseModel {
   @beforeSave()
   public static async hashPassword(usuario: Usuario) {
     if (usuario.$dirty.contrasena) {
+      console.error('Ejecutando hashPassword en beforeSave');
       usuario.contrasena = await hash.make(usuario.contrasena)
     }
   }
