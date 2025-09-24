@@ -29,7 +29,7 @@ export default class PasswordController {
   }
 
   async resetPassword({ request, response }: HttpContext) {
-    const { token, nueva_contrasena } = request.only(['token', 'nueva_contrasena'])
+    const { token, contrasena } = request.only(['token', 'contrasena'])
     const resetToken = await PasswordResetToken.query().where('token', token).first()
     if (!resetToken) {
       return response.badRequest({ error: 'Token inválido' })
@@ -40,7 +40,7 @@ export default class PasswordController {
       return response.notFound({ error: 'Usuario no encontrado' })
     }
   console.error('Contraseña antes:', usuario.contrasena)
-  usuario.contrasena = nueva_contrasena
+  usuario.contrasena = contrasena
   await usuario.save()
   console.error('Contraseña después:', usuario.contrasena)
   await resetToken.delete()
