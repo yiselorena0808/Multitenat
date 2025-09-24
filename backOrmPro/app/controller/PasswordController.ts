@@ -39,10 +39,10 @@ export default class PasswordController {
     if (!usuario) {
       return response.notFound({ error: 'Usuario no encontrado' })
     }
-  console.log('Contraseña antes:', usuario.contrasena)
+  console.error('Contraseña antes:', usuario.contrasena)
   usuario.contrasena = nueva_contrasena
   await usuario.save()
-  console.log('Contraseña después:', usuario.contrasena)
+  console.error('Contraseña después:', usuario.contrasena)
   await resetToken.delete()
   return response.ok({ message: 'Contraseña actualizada correctamente' })
   }

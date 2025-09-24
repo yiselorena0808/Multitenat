@@ -13,8 +13,13 @@ export default class AuthController {
     const usuario = await Usuario.findByOrFail('correo_electronico', correo_electronico)
 
     // Validar contraseña
+    console.error('Intento de login para:', usuario.correo_electronico)
+    console.error('Contraseña en BD (hash):', usuario.contrasena)
+    console.error('Contraseña ingresada:', contrasena)
     const passwordValid = await hash.verify(usuario.contrasena, contrasena)
+    console.error('¿Contraseña válida?', passwordValid)
     if (!passwordValid) {
+      console.error('Login fallido: credenciales inválidas')
       return response.unauthorized({ error: 'Credenciales inválidas' })
     }
 
