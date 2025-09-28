@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs'
 import Usuario from '#models/usuario'
-import jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken'
 
 
 
