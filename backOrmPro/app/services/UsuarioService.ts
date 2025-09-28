@@ -36,6 +36,8 @@ class UsuarioService {
     const token = jwt.sign(
       {
         id: user.id,
+        nombre: user.nombre,
+        id_empresa: user.id_empresa,
         correoElectronico: user.correo_electronico,
         timestamp: Date.now()
       },
