@@ -14,7 +14,7 @@ class BlogController {
 
   async crearBlog({ request, response }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -58,7 +58,7 @@ class BlogController {
 
   async listarBlog({ response, request }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -71,7 +71,7 @@ class BlogController {
 
   async listarBlogId({ response, request, params }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -85,7 +85,7 @@ class BlogController {
 
   async actualizarBlog({ response, request, params }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -100,7 +100,7 @@ class BlogController {
 
   async eliminarBlog({ request, response, params }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }

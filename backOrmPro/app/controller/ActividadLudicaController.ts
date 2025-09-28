@@ -13,7 +13,7 @@ class ActividadesLudicasController {
 
   async crearActividad({ request, response }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -64,7 +64,7 @@ class ActividadesLudicasController {
 
   async listarIdActividad({ response, request }: HttpContext) {
   try {
-    const usuario = (request as any).usuarioLogueado;
+    const usuario = (request as any).user;
     if (!usuario) {
       return response.status(401).json({ error: 'Usuario no autenticado' });
     }
@@ -79,7 +79,7 @@ class ActividadesLudicasController {
 async eliminarActividad({ params, response, request }: HttpContext) {
   try {
     const id = params.id;
-    const usuario = (request as any).usuarioLogueado;
+    const usuario = (request as any).user;
     if (!usuario) {
       return response.status(401).json({ error: 'Usuario no autenticado' });
     }
@@ -94,7 +94,7 @@ async eliminarActividad({ params, response, request }: HttpContext) {
 async actualizarActividad({ request, response, params }: HttpContext) {
   try {
     const id = params.id;
-    const usuario = (request as any).usuarioLogueado;
+    const usuario = (request as any).user;
     if (!usuario) {
       return response.status(401).json({ error: 'Usuario no autenticado' });
     }

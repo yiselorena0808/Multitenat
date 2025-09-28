@@ -10,7 +10,7 @@ export default class CargoController {
 
   async crearCargo({ request, response }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -26,7 +26,7 @@ export default class CargoController {
 
   async listarCargo({ response, request }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -39,7 +39,7 @@ export default class CargoController {
 
   async listarCargoId({ response, request, params }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -53,7 +53,7 @@ export default class CargoController {
 
   async actualizarCargo({ request, response, params }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -68,7 +68,7 @@ export default class CargoController {
 
   async eliminarCargo({ params, response, request }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }

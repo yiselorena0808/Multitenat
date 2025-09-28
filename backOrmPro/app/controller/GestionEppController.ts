@@ -8,7 +8,7 @@ const gestionService = new GestionEppService()
 
 class GestionController {
   async crearGestion({ request, response }: HttpContext) {
-       const usuario = (request as any).usuarioLogueado
+       const usuario = (request as any).user
     const { cedula, id_producto, importancia, estado, fecha_creacion } =
       request.body()
 
@@ -30,7 +30,7 @@ class GestionController {
 
   async listarGestiones({ response, request }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -44,7 +44,7 @@ class GestionController {
 
   async actualizarEstado({ params, request, response }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -59,7 +59,7 @@ class GestionController {
 
   async eliminarGestion({ params, response, request }: HttpContext) {
     try {
-      const usuario = (request as any).usuarioLogueado;
+      const usuario = (request as any).user;
       if (!usuario) {
         return response.status(401).json({ error: 'Usuario no autenticado' });
       }
