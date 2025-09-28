@@ -19,3 +19,5 @@ import './routes/EmpresaRoutes.js'
 import './routes/CargoRoutes.js'
 
 import './routes/password.js'
+
+import './routes/DashboardRoutes.js'
