@@ -71,6 +71,7 @@ class UsuarioService {
         id: user.id,
         correoElectronico: user.correo_electronico,
         timestamp: Date.now(),
+        id_empresa: user.id_empresa,
         nombre: user.nombre,
       },
       process.env.JWT_SECRET as string,
