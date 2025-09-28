@@ -25,13 +25,20 @@ export default class AreasController {
   }
 
   async listarAreas({ response }: HttpContext) {
+    try {
     const areas = await areaService.listarAreas()
     return response.json(areas)
+    } catch (error) {
+      return response.json({ error: error.message, messages })
+    }
   }
 
   async listarId({ params, response }: HttpContext) {
     try {
       const area = await areaService.listarId(params.id)
+      if (!area) {
+        return response.json({ msj: 'Área no encontrada' })
+      }
       return response.json({ msj: 'Área encontrada', datos: area })
     } catch (error) {
       return response.json({ error: error.message, messages })
@@ -42,6 +49,9 @@ export default class AreasController {
     try {
       const data = request.body()
       const area = await areaService.actualizar(params.id, data)
+      if(!area) {
+        return response.json({ msj: 'Área no encontrada o no autorizada' })
+      }
       return response.json({ msj: 'Área actualizada', datos: area })
     } catch (error) {
       return response.json({ error: error.message, messages })

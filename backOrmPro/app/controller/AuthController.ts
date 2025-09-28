@@ -24,14 +24,13 @@ export default class AuthController {
     }
 
     // Crear JWT válido para el middleware
-    const SECRET = process.env.JWT_SECRET || 'sstrict'
     const payload = {
       id: usuario.id,
       id_empresa: usuario.id_empresa,
       correoElectronico: usuario.correo_electronico,
       nombre: usuario.nombre,
     }
-    const token = Jwt.sign(payload, SECRET, { expiresIn: '1d' })
+    const token = Jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '1d' })
 
     // Respuesta exitosa
     return response.ok({

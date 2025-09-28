@@ -99,11 +99,7 @@ async actualizarActividad({ request, response, params }: HttpContext) {
       return response.status(401).json({ error: 'Usuario no autenticado' });
     }
     
-    const datos = request.only([
-      'nombre_actividad', 
-      'fecha_actividad', 
-      'descripcion'
-    ]);
+    const datos = request.all()
     
     const actividad = await this.service.actualizar(id, datos, usuario.id_empresa); // ← Cambiado
     return response.json({ mensaje: 'Actividad actualizada', actividad });

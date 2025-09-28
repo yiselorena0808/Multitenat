@@ -9,13 +9,13 @@ const gestionService = new GestionEppService()
 class GestionController {
   async crearGestion({ request, response }: HttpContext) {
        const usuario = (request as any).usuarioLogueado
-    const { productosIds, cantidad, importancia, estado, fecha_creacion } =
+    const { cedula, id_producto, importancia, estado, fecha_creacion } =
       request.body()
 
     try {
       const gestion = await gestionService.crear(
-        { cantidad, importancia, estado, fecha_creacion },
-        productosIds,
+        { cedula, importancia, estado, fecha_creacion},
+        id_producto,
         usuario
       )
 
