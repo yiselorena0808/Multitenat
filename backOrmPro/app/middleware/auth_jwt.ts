@@ -30,6 +30,7 @@ export default class AuthJwtMiddleware {
         id,
         correoElectronico: decoded.correoElectronico,
         id_empresa,
+        nombre: decoded.nombre,
       }
 
       await next()

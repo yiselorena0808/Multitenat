@@ -70,7 +70,8 @@ class UsuarioService {
       {
         id: user.id,
         correoElectronico: user.correo_electronico,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        nombre: user.nombre,
       },
       process.env.JWT_SECRET as string,
       { expiresIn: '1h' }
