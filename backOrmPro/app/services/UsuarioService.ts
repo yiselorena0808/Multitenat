@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import Usuario from '#models/usuario'
 import jwt from 'jsonwebtoken'
 
-const SECRET = process.env.JWT_SECRET || 'sstrict'
+
 
 class UsuarioService {
   async register(
@@ -39,7 +39,7 @@ class UsuarioService {
         correoElectronico: user.correo_electronico,
         timestamp: Date.now()
       },
-      SECRET,
+      process.env.JWT_SECRET as string ,
       { expiresIn: '1h' }
     )
 
@@ -72,7 +72,7 @@ class UsuarioService {
         correoElectronico: user.correo_electronico,
         timestamp: Date.now()
       },
-      SECRET,
+      process.env.JWT_SECRET as string,
       { expiresIn: '1h' }
     )
 

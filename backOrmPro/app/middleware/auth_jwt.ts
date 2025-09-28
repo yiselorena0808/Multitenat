@@ -1,7 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Jwt from 'jsonwebtoken'
 
-const SECRET = process.env.JWT_SECRET || 'sstrict'
+
 
 export default class AuthJwtMiddleware {
   public async handle({ request, response }: HttpContext, next: () => Promise<void>) {
@@ -15,7 +15,7 @@ export default class AuthJwtMiddleware {
 
     try {
       const token = authHeader.replace('Bearer ', '').trim()
-      const decoded = Jwt.verify(token, SECRET) as any
+      const decoded = Jwt.verify(token, process.env.JWT_SECRET as string) as any
       console.log('Decoded Token:', decoded) // Depuración del token decodificado
 
       const id = decoded.id
@@ -30,7 +30,6 @@ export default class AuthJwtMiddleware {
         id,
         correoElectronico: decoded.correoElectronico,
         id_empresa,
-        nombre: decoded.nombre,
       }
 
       await next()
