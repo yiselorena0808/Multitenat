@@ -10,6 +10,11 @@ export default class AreasController {
     const data = request.only([
       'nombre',
       'codigo',
+      'descripcion',
+      'id_empresa',
+      'estado',
+      'esquema',
+      'alias'
     ])
     const area = await areaService.crearArea(data)
     return response.json({ msj: 'Área creada', datos: area })
