@@ -19,7 +19,7 @@ export default class ListaChequeoController {
         'kilometraje',
       ])
 
-      const lista = await listaService.crear(datos, usuario)
+      const lista = await listaService.crear(usuario, datos)
 
       return response.json({ message: 'Lista creada correctamente', datos: lista })
     } catch (error) {

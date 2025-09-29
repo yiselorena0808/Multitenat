@@ -1,11 +1,11 @@
 import ActividadLudica from '#models/actividad_ludica'
 
-class ActividadLudicaService {
-  async crear( datos: any) {
+export default class ActividadLudicaService {
+  async crear(datos: any) {
     return await ActividadLudica.create(datos)
   }
 
-  async listarId(id_empresa: number) {
+  async listarPorEmpresa(id_empresa: number) {
     return await ActividadLudica.query().where('id_empresa', id_empresa)
   }
 
@@ -29,14 +29,4 @@ class ActividadLudicaService {
     await actividad.delete()
     return { mensaje: 'Actividad eliminada correctamente' }
   }
-
-  async conteo() {
-    const actividades = await ActividadLudica.query()
-    return {
-      total: actividades.length,
-      actividades,
-    }
-  }
 }
-
-export default ActividadLudicaService

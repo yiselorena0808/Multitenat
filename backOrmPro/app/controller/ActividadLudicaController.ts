@@ -1,31 +1,21 @@
+import type { HttpContext } from '@adonisjs/core/http'
 import ActividadLudicaService from '#services/ActividadLudicaService'
-import { messages } from '@vinejs/vine/defaults'
-import type { HttpContext} from '@adonisjs/core/http'
-import cloudinary from '#config/cloudinary';
+import cloudinary from '#config/cloudinary'
 
+const actividadService = new ActividadLudicaService()
 
-class ActividadesLudicasController {
-  private service = new ActividadLudicaService();
-
- getEmpresaId(request: any, auth?: any) {
-    return auth?.user?.id_empresa || request.empresaId
-  }
-
+export default class ActividadLudicaController {
+  // Crear actividad lúdica
   async crearActividad({ request, response }: HttpContext) {
     try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
+      const user = (request as any).user
+      if (!user) {
+        return response.unauthorized({ error: 'Usuario no autenticado' })
       }
 
-      const datos = request.only([
-        'nombre_actividad',
-        'fecha_actividad',
-        'descripcion',
-      ]) as any;
-
-      datos.id_usuario = usuario.id_usuario;
-      datos.nombre_usuario = usuario.nombre_usuario;
+      const datos = request.only(['nombre_actividad', 'fecha_actividad', 'descripcion']) as any
+      datos.id_usuario = user.id
+      datos.id_empresa = user.id_empresa
 
       // Archivos
       const imagenVideo = request.file('imagen_video', {
@@ -54,59 +44,55 @@ class ActividadesLudicasController {
         datos.archivo_adjunto = upload.secure_url
       }
 
-      const actividad = await this.service.crear(datos);
-      return response.status(201).json({ mensaje: 'Actividad creada correctamente', actividad });
+      const actividad = await actividadService.crear(datos)
+
+      return response.json({
+        mensaje: 'Actividad creada correctamente',
+        actividad,
+      })
     } catch (error: any) {
-      return response.status(500).json({ error: error.message });
+      console.error('Error en crearActividad:', error)
+      return response.internalServerError({ error: error.message })
     }
   }
 
+  // Listar actividades por empresa
+  async listar({ request, response }: HttpContext) {
+    try {
+      const user = (request as any).user
+      if (!user) return response.unauthorized({ error: 'Usuario no autenticado' })
 
-  async listarIdActividad({ response, request }: HttpContext) {
-  try {
-    const usuario = (request as any).user;
-    if (!usuario) {
-      return response.status(401).json({ error: 'Usuario no autenticado' });
+      const actividades = await actividadService.listarPorEmpresa(user.id_empresa)
+      return response.json(actividades)
+    } catch (error: any) {
+      return response.status(500).json({ error: error.message })
     }
-    
-    const actividad = await this.service.listarId( usuario.id_empresa); // ← Cambiado
-    return response.json(actividad);
-  } catch (error: any) {
-    return response.status(500).json({ error: error.message, messages });
+  }
+
+  // Actualizar actividad
+  async actualizar({ params, request, response }: HttpContext) {
+    try {
+      const user = (request as any).user
+      if (!user) return response.unauthorized({ error: 'Usuario no autenticado' })
+
+      const datos = request.all()
+      const actividad = await actividadService.actualizar(Number(params.id), datos, user.id_empresa)
+      return response.json(actividad)
+    } catch (error: any) {
+      return response.status(500).json({ error: error.message })
+    }
+  }
+
+  // Eliminar actividad
+  async eliminar({ params, request, response }: HttpContext) {
+    try {
+      const user = (request as any).user
+      if (!user) return response.unauthorized({ error: 'Usuario no autenticado' })
+
+      const resultado = await actividadService.eliminar(Number(params.id), user.id_empresa)
+      return response.json(resultado)
+    } catch (error: any) {
+      return response.status(500).json({ error: error.message })
+    }
   }
 }
-
-async eliminarActividad({ params, response, request }: HttpContext) {
-  try {
-    const id = params.id;
-    const usuario = (request as any).user;
-    if (!usuario) {
-      return response.status(401).json({ error: 'Usuario no autenticado' });
-    }
-    
-    const resultado = await this.service.eliminar(id, usuario.id_empresa); // ← Cambiado
-    return response.json({ mensaje: 'Actividad eliminada', resultado });
-  } catch (error: any) {
-    return response.status(500).json({ error: error.message, messages });
-  }
-}
-
-async actualizarActividad({ request, response, params }: HttpContext) {
-  try {
-    const id = params.id;
-    const usuario = (request as any).user;
-    if (!usuario) {
-      return response.status(401).json({ error: 'Usuario no autenticado' });
-    }
-    
-    const datos = request.all()
-    
-    const actividad = await this.service.actualizar(id, datos, usuario.id_empresa); // ← Cambiado
-    return response.json({ mensaje: 'Actividad actualizada', actividad });
-  } catch (error: any) {
-    return response.status(500).json({ error: error.message, messages });
-  }
-}
-}
-
-export default ActividadesLudicasController
