@@ -39,10 +39,10 @@ export default class PublicacionBlog extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  @belongsTo(() => Usuario)
+  @belongsTo(() => Usuario, {foreignKey: 'id_usuario'})
   declare usuario: BelongsTo<typeof Usuario>
 
-  @belongsTo(() => Empresa)
+  @belongsTo(() => Empresa, {foreignKey: 'id_empresa'})
   declare empresa: BelongsTo<typeof Empresa>
 }
 
