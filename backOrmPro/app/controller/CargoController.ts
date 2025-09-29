@@ -1,98 +1,38 @@
-import CargoService from "#services/CargoService";
-import { messages } from "@vinejs/vine/defaults";
-import { HttpContext } from "@adonisjs/core/http";
+import CargoService from '../services/CargoService.js'
+import type { HttpContext } from '@adonisjs/core/http'
 
+const service = new CargoService()
 
-const cargoservice = new CargoService();
-
-export default class CargoController {
-
-
-  async crearCargo({ request, response }: HttpContext) {
-    try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const datos = request.only(['cargo']) as any;
-      datos.id_usuario = usuario.id_usuario;
-      datos.usuario_nombre = usuario.nombre_usuario;
-      const empresaId = usuario.id_empresa;
-      return response.json(await cargoservice.crear(empresaId, datos));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
-    }
+export default class CargosController {
+  async listar({ response }: HttpContext) {
+    const cargos = await service.listar()
+    return response.json(cargos)
   }
 
-  async listarCargo({ response, request }: HttpContext) {
-    try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      return response.json(await cargoservice.listar(empresaId));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
-    }
+  async crear({ request, response }: HttpContext) {
+    const data = request.only(['cargo'])
+    const cargo = await service.crear(data)
+    return response.created(cargo)
   }
 
-  async listarCargoId({ response, request, params }: HttpContext) {
-    try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      const id = params.id;
-      return response.json(await cargoservice.listarId(id, empresaId));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
-    }
+  async actualizar({ params, request, response }: HttpContext) {
+    const data = request.only(['cargo'])
+    const cargo = await service.actualizar(params.id, data)
+    return response.json(cargo)
   }
 
-  async actualizarCargo({ request, response, params }: HttpContext) {
-    try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      const id = params.id;
-      const datos = request.only(['cargo']);
-      return response.json(await cargoservice.actualizar(id, empresaId, datos));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
-    }
+  async eliminar({ params, response }: HttpContext) {
+    await service.eliminar(params.id_cargo)
+    return response.json({ message: 'Cargo eliminado' })
   }
 
-  async eliminarCargo({ params, response, request }: HttpContext) {
-    try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      const id = params.id;
-      return response.json(await cargoservice.eliminar(id, empresaId));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
-    }
+  async productosPorCargo({ params, response }: HttpContext) {
+    const productos = await service.productosPorCargoId(params.id)
+    return response.json(productos)
   }
 
-  async asociarProductos({ params, request, response }: HttpContext) {
-    try {
-      const cargoId = params.id;
-      const productosIds = request.input('productosIds')
-
-      const cargo = await cargoservice.asociarProductosACargo(cargoId, productosIds);
-
-      return response.json({
-        mensaje: 'Productos asociados al cargo correctamente',
-        datos: cargo,
-      });
-    } catch (error) {
-      return response.status(400).send({ mensaje: error.message });
-    }
+  async productosPorCargoNombre({ params, response }: HttpContext) {
+    const productos = await service.productosPorCargoNombre(params.nombre)
+    return response.json(productos)
   }
 }

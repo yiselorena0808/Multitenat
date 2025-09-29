@@ -1,15 +1,20 @@
-import CargoController from "../../app/controller/CargoController.js";
-import Route from "@adonisjs/core/services/router";
-import empresaMiddleware from "#middleware/EmpresaMildeware"
-import AuthMiddleware from "#middleware/auth_middleware"
+import CargosController from '../../app/controller/CargoController.js'
+import Route from '@adonisjs/core/services/router'
+import AuthJwt from '../../app/middleware/auth_jwt.js'
 
-const cargo = new CargoController()
-const auth = new AuthMiddleware()
-const empresa = new empresaMiddleware()
+const authJwt = new AuthJwt()
+const cargosController = new CargosController()
 
-Route.get('/listarCar', cargo.listarCargo).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
-Route.post('/crearCar', cargo.crearCargo).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
-Route.get('/listarCarId', cargo.listarCargoId).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
-Route.put('/actCar', cargo.actualizarCargo).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
-Route.delete('/eliminarCar', cargo.eliminarCargo).middleware([auth.handle.bind(auth), empresa.handle.bind(empresa)])
+Route.group(() => {
+  // CRUD de cargos
+  Route.post('/crear', cargosController.crear)
+  Route.get('/listar', cargosController.listar)
+  Route.put('/actualizar/:id_cargo', cargosController.actualizar)
+  Route.delete('/eliminar/:id', cargosController.eliminar)
 
+  // Productos por cargo
+  Route.get('/:id_cargo/productos', cargosController.productosPorCargo)
+  Route.get('/nombre/:nombre/productos', cargosController.productosPorCargoNombre)
+})
+  .prefix('/cargos')
+  .use(authJwt.handle.bind(authJwt))
