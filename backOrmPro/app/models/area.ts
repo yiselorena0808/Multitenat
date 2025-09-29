@@ -12,10 +12,10 @@ export default class Area extends BaseModel {
   declare id_area: number
   
    @column()
-  declare nombre_area: string
+  declare nombre: string
 
   @column()
-  declare codigo_area: string
+  declare codigo: string
 
   @column()
   declare descripcion: string | null
