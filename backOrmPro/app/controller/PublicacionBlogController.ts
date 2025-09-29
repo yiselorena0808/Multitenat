@@ -1,116 +1,62 @@
-
-import BlogService from '#services/PublicacionBlogService'
-import { messages } from '@vinejs/vine/defaults'
 import type { HttpContext} from '@adonisjs/core/http'
-import cloudinary from '#config/cloudinary';
+import PublicacionBlogService from '#services/PublicacionBlogService'
 
+const service = new PublicacionBlogService()
 
-const blogService = new BlogService()
+export default class PublicacionBlogController {
 
+  async listar({ response }: HttpContext) {
+    const publicaciones = await service.listar()
+    return response.json(publicaciones)
+  }
 
+  async listarPorEmpresa({ params, response }: HttpContext) {
+    const publicaciones = await service.listarPorEmpresa(Number(params.id_empresa))
+    return response.json(publicaciones)
+  }
 
-class BlogController {
-  private service = new BlogService()
+  async crear({ request, response }: HttpContext) {
+    // Obtener usuario del request (setiado por tu middleware)
+    const user = (request as any).user
+    if (!user) return response.unauthorized({ message: 'Usuario no autenticado' })
 
-  async crearBlog({ request, response }: HttpContext) {
+    // Campos enviados desde el frontend
+    const data: any = request.only(['titulo', 'descripcion', 'fecha_actividad'])
+
+    // Agregar automáticamente los campos obligatorios
+    data.id_usuario = user.id
+    data.nombre_usuario = user.nombre
+    data.id_empresa = user.id_empresa
+
+    const imagen = request.file('imagen')
+    const archivo = request.file('archivo')
+
+    const imagenPath = imagen?.tmpPath
+    const archivoPath = archivo?.tmpPath
+
     try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const datos = request.only(['nombre_usuario', 'titulo', 'fecha_actividad', 'descripcion', 'imagen', 'archivo']) as any;
-      datos.id_usuario = usuario.id_usuario;
-      datos.nombre_usuario = usuario.nombre_usuario;
-
-      // Archivos
-      const imagen = request.file('imagen', {
-        size: '20mb',
-        extnames: ['jpg', 'png', 'jpeg', 'gif'],
-      })
-      const archivo = request.file('archivo', {
-        size: '10mb',
-        extnames: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
-      })
-
-      // Subida a Cloudinary si existen
-      if (imagen && imagen.tmpPath) {
-        const upload = await cloudinary.uploader.upload(imagen.tmpPath, {
-          folder: 'blog',
-          resource_type: 'auto',
-        })
-        datos.imagen = upload.secure_url
-      }
-
-      if (archivo && archivo.tmpPath) {
-        const upload = await cloudinary.uploader.upload(archivo.tmpPath, {
-          folder: 'blog',
-          resource_type: 'auto',
-        })
-        datos.archivo = upload.secure_url
-      }
-
-      const empresaId = usuario.id_empresa;
-      return response.json(await blogService.crear(empresaId, datos));
+      const publicacion = await service.crear(data, archivoPath, imagenPath)
+      return response.json(publicacion)
     } catch (error) {
-      return response.json({ error: error.message, messages })
+      console.error('Error en crear publicación:', error)
+      return response.status(500).json({ message: error.message })
     }
   }
 
-  async listarBlog({ response, request }: HttpContext) {
-    try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      return response.json(await blogService.listar(empresaId));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
-    }
+  async actualizar({ params, request, response }: HttpContext) {
+    const data = request.only(['titulo','fecha_actividad','descripcion'])
+    const imagen = request.file('imagen')
+    const archivo = request.file('archivo')
+
+    const imagenPath = imagen ? imagen.tmpPath : undefined
+    const archivoPath = archivo ? archivo.tmpPath : undefined
+
+    const publicacion = await service.actualizar(Number(params.id), data, archivoPath, imagenPath)
+    return response.json(publicacion)
   }
 
-  async listarBlogId({ response, request, params }: HttpContext) {
-    try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const id = params.id;
-      const empresaId = usuario.id_empresa;
-      return response.json(await this.service.listarId(id, empresaId));
-    } catch (e) {
-      return response.json({ error: e.message, messages });
-    }
-  }
-
-  async actualizarBlog({ response, request, params }: HttpContext) {
-    try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const id = params.id;
-      const empresaId = usuario.id_empresa;
-      const datos = request.only(['nombre_usuario', 'titulo', 'fecha_actividad', 'descripcion', 'imagen', 'archivo']) as any;
-      return response.json(await this.service.actualizar(id, empresaId, datos));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
-    }
-  }
-
-  async eliminarBlog({ request, response, params }: HttpContext) {
-    try {
-      const usuario = (request as any).user;
-      if (!usuario) {
-        return response.status(401).json({ error: 'Usuario no autenticado' });
-      }
-      const empresaId = usuario.id_empresa;
-      const id = params.id;
-      return response.json(this.service.eliminar(id, empresaId));
-    } catch (error) {
-      return response.json({ error: error.message, messages });
-    }
+  async eliminar({ params, response }: HttpContext) {
+    const result = await service.eliminar(Number(params.id))
+    return response.json(result)
   }
 }
-
-export default BlogController

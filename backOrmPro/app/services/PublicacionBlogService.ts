@@ -1,62 +1,91 @@
+import { v2 as cloudinary } from 'cloudinary'
 import PublicacionBlog from '#models/publicacion_blog'
 
-class PublicacionBlogService {
-  async crear(empresaId:number,datos: any) {
-    const blog = await PublicacionBlog.create({
-      ...datos,
-      id_empresa: empresaId,
-    })
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
-    return blog
+export default class PublicacionBlogService {
+  // Listar todas las publicaciones
+  async listar() {
+    return await PublicacionBlog.query().preload('usuario').preload('empresa')
   }
 
-  async listar(empresaId: number) {
-    return await PublicacionBlog.query().where('id_empresa', empresaId)
-  }
-
-  async listarId(id: number, empresaId: number) {
+  // Listar publicaciones por empresa
+  async listarPorEmpresa(id_empresa: number) {
     return await PublicacionBlog.query()
-    .where('id', id)
-    .andWhere('id_empresa', empresaId)
-    .first()
+      .where('id_empresa', id_empresa)
+      .preload('usuario')
+      .preload('empresa')
   }
 
-  async actualizar(id:number, empresaId:number, datos: any) {
-    const blog = await PublicacionBlog.findBy('id', id)
-    if(!blog){
-      return {error: 'publicación no encontrada'}
+  // Crear nueva publicación
+  async crear(data: any, archivoPath?: string, imagenPath?: string) {
+    const publicacion = new PublicacionBlog()
+    publicacion.id_usuario = data.id_usuario
+    publicacion.nombre_usuario = data.nombre_usuario
+    publicacion.titulo = data.titulo
+    publicacion.fecha_actividad = data.fecha_actividad
+    publicacion.descripcion = data.descripcion
+    publicacion.id_empresa = data.id_empresa
+
+    if (imagenPath) {
+      const imgResult = await cloudinary.uploader.upload(imagenPath, {
+        folder: 'imagenes_publicaciones',
+        resource_type: 'auto',
+        upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
+      })
+      publicacion.imagen = imgResult.secure_url
     }
 
-    if (empresaId && blog.id_empresa !== empresaId) {
-      return { error: 'No autorizado para actualizar esta publicación' }
+    if (archivoPath) {
+      const fileResult = await cloudinary.uploader.upload(archivoPath, {
+        folder: 'archivos_publicaciones',
+        resource_type: 'auto',
+        upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
+      })
+      publicacion.archivo = fileResult.secure_url
     }
 
-    blog.merge(datos)
-    await blog.save()
-    return blog
+    await publicacion.save()
+    return publicacion
   }
 
-  async eliminar(id: number, empresaId: number) {
-    const blog = await PublicacionBlog.query()
-    .where('id', id)
-    .andWhere('id_empresa', empresaId)
-    .first()
+  // Actualizar publicación
+  async actualizar(id: number, data: any, archivoPath?: string, imagenPath?: string) {
+    const publicacion = await PublicacionBlog.findOrFail(id)
+    publicacion.titulo = data.titulo ?? publicacion.titulo
+    publicacion.descripcion = data.descripcion ?? publicacion.descripcion
+    publicacion.fecha_actividad = data.fecha_actividad ?? publicacion.fecha_actividad
 
-    if (!blog) {
-      return { error: 'Publicación no encontrada o no autorizada' }
+    if (imagenPath) {
+      const imgResult = await cloudinary.uploader.upload(imagenPath, {
+        folder: 'imagenes_publicaciones',
+        resource_type: 'auto',
+        upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
+      })
+      publicacion.imagen = imgResult.secure_url
     }
 
-    await blog.delete()
-    return { mensaje: 'Publicación eliminada correctamente' }
+    if (archivoPath) {
+      const fileResult = await cloudinary.uploader.upload(archivoPath, {
+        folder: 'archivos_publicaciones',
+        resource_type: 'auto',
+        upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
+      })
+      publicacion.archivo = fileResult.secure_url
+    }
+
+    await publicacion.save()
+    return publicacion
   }
 
-  async conteo() {
-    const blogs = await PublicacionBlog.query()
-    return {
-      total: blogs.length,
-      blogs,
-    }
+  // Eliminar publicación
+  async eliminar(id: number) {
+    const publicacion = await PublicacionBlog.findOrFail(id)
+    await publicacion.delete()
+    return { mensaje: 'Publicación eliminada' }
   }
 }
-
-export default PublicacionBlogService
