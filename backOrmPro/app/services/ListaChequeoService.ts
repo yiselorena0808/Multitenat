@@ -1,60 +1,46 @@
-import ListaChequeo from '#models/lista_chequeo'
+import ListaChequeo from "#models/lista_chequeo"
 
-class ListaChequeoService {
-  async crear(usuario:any, datos: any) {
-    const lista = await ListaChequeo.create({
+export default class ListaChequeoService {
+  // Crear lista
+  public async crear(datos: any, usuario: any) {
+    return await ListaChequeo.create({
       ...datos,
+      id_usuario: usuario.id,
       id_empresa: usuario.id_empresa,
-      id_usuario: usuario.id_usuario,
     })
-
-    return lista
   }
 
-  async listar(empresaId: number) {
-    return await ListaChequeo.query().where('id_empresa', empresaId).orderBy('fecha', 'desc')
-  }
-
-  async listarId(id: number, empresaId: number) {
+  // Listar todas las listas de la empresa
+  public async listar(idEmpresa: number) {
     return await ListaChequeo.query()
-    .where('id', id)
-    .andWhere('id_empresa', empresaId)
-    .first()
+      .where('id_empresa', idEmpresa)
+      .orderBy('fecha', 'desc')
   }
 
- async actualizar(id: number, empresaId:number,datos: any) {
-  const lista = await this.listarId(empresaId, id) // busca por primary key
-   if(!lista) {
-      return {error: 'lista no encontrada'}
-   }
+  // Listar una lista por ID
+  public async listarPorId(idEmpresa: number, id: number) {
+    return await ListaChequeo.query()
+      .where('id_empresa', idEmpresa)
+      .andWhere('id', id)
+      .first()
+  }
 
-   if (empresaId && lista.id_empresa !== empresaId) {
-     return { error: 'No autorizado para actualizar esta lista' }
-   }
+  // Actualizar lista
+  public async actualizar(idEmpresa: number, id: number, datos: any) {
+    const lista = await this.listarPorId(idEmpresa, id)
+    if (!lista) return null
 
     lista.merge(datos)
     await lista.save()
     return lista
-}
- 
+  }
 
-  async eliminar(id: number, empresaId: number) {
-    const lista = await this.listarId(empresaId, id)
-    if(!lista) {
-      return { error: 'Lista no encontrada o no autorizada' }
-    }
+  // Eliminar lista
+  public async eliminar(idEmpresa: number, id: number) {
+    const lista = await this.listarPorId(idEmpresa, id)
+    if (!lista) return null
 
     await lista.delete()
-    return { mensaje: 'Lista eliminada correctamente'}
-  }
-
-  async conteo() {
-    const listas = await ListaChequeo.query()
-    return {
-      total: listas.length,
-      listas,
-    }
+    return true
   }
 }
-
-export default ListaChequeoService

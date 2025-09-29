@@ -19,7 +19,7 @@ export default class ListaChequeoController {
         'kilometraje',
       ])
 
-      const lista = await listaService.crear(usuario, datos)
+      const lista = await listaService.crear(datos, usuario)
 
       return response.json({ message: 'Lista creada correctamente', datos: lista })
     } catch (error) {
@@ -46,7 +46,7 @@ export default class ListaChequeoController {
       const usuario = (request as any).user
       if (!usuario) return response.unauthorized({ error: 'Usuario no autenticado' })
 
-      const lista = await listaService.listarId(usuario.id_empresa, params.id)
+      const lista = await listaService.listarPorId(usuario.id_empresa, params.id)
       if (!lista) return response.notFound({ error: 'Lista no encontrada' })
 
       return response.json({ datos: lista })
