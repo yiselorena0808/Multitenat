@@ -12,13 +12,14 @@ export default class Producto extends BaseModel {
   declare id_producto: number
 
   @column()
+  declare id_cargo: number
+
+  @column()
   declare nombre: string
 
   @column()
   declare descripcion: string | null
 
-  @column()
-  declare cargo_asignado: string
 
   @column()
   declare estado: boolean
@@ -30,15 +31,16 @@ export default class Producto extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  @manyToMany(() => GestionEpp, {
-    pivotTable: 'gestion_epp_productos',
-    localKey: 'id_producto',
-    pivotForeignKey: 'producto_id',
-    relatedKey: 'id',
-    pivotRelatedForeignKey: 'gestion_id',
-  })
-  declare gestiones: ManyToMany<typeof GestionEpp>
+  @belongsTo(() => GestionEpp)
+  declare gestion: BelongsTo<typeof GestionEpp>
 
-  @belongsTo(() => Cargo)
-  declare cargo: BelongsTo<typeof Cargo>
+@manyToMany(() => Cargo, {
+  pivotTable: 'cargo_productos',
+  localKey: 'id_producto',
+  pivotForeignKey: 'producto_id',
+  relatedKey: 'id_cargo',
+  pivotRelatedForeignKey: 'cargo_id',
+})
+declare cargos: ManyToMany<typeof Cargo>
+
 }

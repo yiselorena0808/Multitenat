@@ -17,6 +17,9 @@ export default class ListaChequeoController {
         'soat',
         'tecnico',
         'kilometraje',
+        'id_usuario',
+        'usuario_nombre',
+        'id_empresa'
       ])
 
       const lista = await listaService.crear(datos, usuario)

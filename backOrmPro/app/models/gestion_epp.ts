@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column, manyToMany } from '@adonisjs/lucid/orm'
-import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Usuario from '#models/usuario'
 import Empresa from '#models/empresa'
 import Area from '#models/area'
@@ -60,12 +60,6 @@ export default class GestionEpp extends BaseModel {
   @belongsTo(() => Area)
   declare area: BelongsTo<typeof Area>
 
-  @manyToMany(() => Producto, {
-    pivotTable: 'gestion_epp_productos',
-    localKey: 'id',
-    pivotForeignKey: 'gestion_id',
-    relatedKey: 'id_producto',
-    pivotRelatedForeignKey: 'producto_id',
-  })
-  declare productos: ManyToMany<typeof Producto>
+  @hasMany(() => Producto)
+  declare productos: HasMany<typeof Producto>
 }

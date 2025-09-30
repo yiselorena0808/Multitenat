@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column, hasMany, beforeSave } from '@adonisjs/lucid/orm'
-import hash from '@adonisjs/core/services/hash'
+import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Empresa from './empresa.js'
@@ -74,13 +73,7 @@ export default class Usuario extends BaseModel {
 
    static accessTokens = DbAccessTokensProvider.forModel(Usuario)
 
-  @beforeSave()
-  public static async hashPassword(usuario: Usuario) {
-    if (usuario.$dirty.contrasena) {
-      console.error('Ejecutando hashPassword en beforeSave');
-      usuario.contrasena = await hash.make(usuario.contrasena)
-    }
-  }
+ 
 
 
   

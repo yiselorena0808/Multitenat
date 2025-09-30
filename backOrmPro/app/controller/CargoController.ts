@@ -35,4 +35,61 @@ export default class CargosController {
     const productos = await service.productosPorCargoNombre(params.nombre)
     return response.json(productos)
   }
+
+   public async crearProductoYAsociar({ request, params, response }: HttpContext) {
+    try {
+      const data = request.only(['nombre', 'codigo'])
+      const producto = await service.crearProductoYAsociar(params.id, data)
+      return response.status(201).json(producto)
+    } catch (error) {
+      return response.status(500).json({ error: error.message })
+    }
+  }
+
+  public async asociarProductoExistente({ request, params, response }: HttpContext) {
+    try {
+      const { productoId } = request.only(['productoId'])
+      const result = await service.asociarProductoExistente(params.id, productoId)
+      return response.json(result)
+    } catch (error) {
+      return response.status(500).json({ error: error.message })
+    }
+  }
+
+  public async listarProductos({ params, response }: HttpContext) {
+    try {
+      const productos = await service.listarProductos(params.id)
+      return response.json(productos)
+    } catch (error) {
+      return response.status(500).json({ error: error.message })
+    }
+  }
+
+  public async desvincularProducto({ request, params, response }: HttpContext) {
+    try {
+      const { productoId } = request.only(['productoId'])
+      const result = await service.desvincularProductos(params.id, [productoId])
+      return response.json(result)
+    } catch (error) {
+      return response.status(500).json({ error: error.message })
+    }
+  }
+
+  public async reemplazarProductos({ request, params, response }: HttpContext) {
+    try {
+      const { productosIds } = request.only(['productosIds'])
+      const result = await service.reemplazarProductos(params.id, productosIds)
+      return response.json(result)
+    } catch (error) {
+      return response.status(500).json({ error: error.message })
+    }}
+
+    public async vincularProductos({ request, params, response }: HttpContext) {
+    try {
+      const { productosIds } = request.only(['productosIds'])
+      const result = await service.vincularProductos(params.id, productosIds)
+      return response.json(result)
+    } catch (error) {
+      return response.status(500).json({ error: error.message })
+    }}
 }
