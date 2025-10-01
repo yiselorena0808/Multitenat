@@ -12,7 +12,7 @@ class GestionEppService {
       id_usuario: usuario.id,
       nombre: usuario.nombre,
       apellido: usuario.apellido,
-      cargo: usuario.cargo,
+      id_cargo: usuario.id_cargo,
       id_empresa: usuario.id_empresa,
       id_area: usuario.id_area,
     })
