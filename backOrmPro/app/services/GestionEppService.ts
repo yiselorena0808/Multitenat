@@ -86,9 +86,9 @@ class GestionEppService {
       gestiones,
     }
   }
-  async productosPorCargo(cargo: string) {
+  async productosPorCargo(id_cargo: number) {
     return await Producto.query()
-      .where('cargo_asignado', cargo)
+      .where('cargo_asignado', id_cargo)
       .andWhere('estado', true)
   }
 }
