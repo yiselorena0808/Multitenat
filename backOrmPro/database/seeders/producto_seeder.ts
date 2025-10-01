@@ -6,7 +6,6 @@ export default class extends BaseSeeder {
     await Producto.create({
       nombre: 'Herramientas',
       descripcion: 'Descripcion del producto 1',
-      cargo_asignado: 'SGVA',
       estado: true
     })
   }

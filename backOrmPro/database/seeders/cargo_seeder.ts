@@ -6,8 +6,7 @@ export default class extends BaseSeeder {
     await Cargo.create({
       cargo: 'SGVA',
       id_empresa: 1,
-      id_gestion: 1,
-      id_producto: 1
+      id_gestion: 1
     })
   }
 }

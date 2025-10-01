@@ -5,7 +5,6 @@ export default class ProductoService {
   async crearProducto(data: {
     nombre: string
     descripcion?: string | null
-    cargo_asignado?: string
     estado?: boolean
   }) {
     const producto = await Producto.create(data)
@@ -32,7 +31,6 @@ export default class ProductoService {
   async actualizarProducto(id: number, data: {
     nombre?: string
     descripcion: string | null
-    cargo_asignado: string
     estado?: boolean
   }) {
     const producto = await Producto.find(id)
