@@ -16,6 +16,7 @@ export default class ActividadLudicaController {
       const datos = request.only(['nombre_actividad', 'fecha_actividad', 'descripcion']) as any
       datos.id_usuario = user.id
       datos.id_empresa = user.id_empresa
+      datos.nombre_usuario = user.nombre
 
       // Archivos
       const imagenVideo = request.file('imagen_video', {
