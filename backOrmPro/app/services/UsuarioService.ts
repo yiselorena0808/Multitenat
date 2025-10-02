@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import Usuario from '#models/usuario'
 import jwt from 'jsonwebtoken'
 
+
 const SECRET = process.env.JWT_SECRET || 'sstrict'
 
 class UsuarioService {
@@ -95,16 +96,24 @@ class UsuarioService {
 
   // Actualizar usuario
   async actualizar(id: number, datos: Partial<Usuario>, empresaId: number) {
-    const usuario = await Usuario.query()
-      .where('id', id)
-      .andWhere('id_empresa', empresaId)
-      .first()
-    if (!usuario) return { error: 'Usuario no encontrado o autorizado' }
+  const usuario = await Usuario.query()
+    .where('id', id)
+    .andWhere('id_empresa', empresaId)
+    .first()
 
+  if (!usuario) return { error: 'Usuario no encontrado o autorizado' }
+
+  // Si viene contraseña, la encriptamos antes de guardar
+  if (datos.contrasena) {
+    const hash = await bcrypt.hash(datos.contrasena, 10) // función que uses en tu modelo
+    usuario.merge({ ...datos, contrasena: hash })
+  } else {
     usuario.merge(datos)
-    await usuario.save()
-    return usuario
   }
+
+  await usuario.save()
+  return usuario
+}
 
   // Eliminar usuario
   async eliminar(id: number, empresaId: number) {

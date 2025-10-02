@@ -46,6 +46,9 @@ export default class GestionEpp extends BaseModel {
   @column()
   declare id_area: number
 
+  @column()
+  declare id_productos: number
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

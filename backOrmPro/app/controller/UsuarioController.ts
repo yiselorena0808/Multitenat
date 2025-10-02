@@ -100,25 +100,54 @@ export default class UsuarioController {
   }
 
   async actualizarUsuario({ params, request, response }: HttpContext) {
-    try {
-    const datos = request.all()
-    const empresaId = (response as any).empresaId
-    const usuario = await usuarioService.actualizar(params.id, datos, empresaId)
-    return response.json(usuario)
-    } catch (error) {
-      return response.json({ error: error.message })
+  try {
+    const user = (request as any).user
+    if (!user) {
+      return response.unauthorized({ error: 'Usuario no autenticado' })
     }
-  }
 
-  async eliminarUsuario({ params, response }: HttpContext) {
-    try {
-    const empresaId = (response as any).empresaId
-    const resultado = await usuarioService.eliminar(params.id, empresaId)
-    return response.json(resultado)
-    } catch (error) {
-      return response.json({ error: error.message })
+    // Solo permitimos actualizar estos campos
+    const datos = request.only([
+      'id_area',
+      'nombre',
+      'apellido',
+      'nombre_usuario',
+      'correo_electronico',
+      'cargo',
+      'contrasena',
+      'confirmacion'
+    ])
+
+    // Validación de contraseñas
+    if (datos.contrasena && datos.confirmacion && datos.contrasena !== datos.confirmacion) {
+      return response.badRequest({ error: 'Las contraseñas no coinciden' })
     }
+
+    const usuario = await usuarioService.actualizar(params.id, datos, user.id_empresa)
+    return response.json({ mensaje: 'Usuario actualizado correctamente', datos: usuario })
+  } catch (error) {
+    console.error("Error en actualizarUsuario:", error)
+    return response.status(500).json({ error: error.message })
   }
+}
+
+
+  public async eliminarUsuario({ params, request, response }: HttpContext) {
+    try {
+      const user = (request as any).user
+
+      if (!user) {
+        return response.unauthorized({ error: 'Usuario no autenticado' })
+      }
+
+      const resultado = await usuarioService.eliminar(params.id, user.id_empresa)
+      return response.json(resultado)
+    } catch (error) {
+      console.error("Error al eliminar usuario:", error)
+      return response.status(500).json({ error: error.message })
+  }
+}
+
 
   async conteoUsuarios({ response }: HttpContext) {
     const conteo = await usuarioService.conteo()
