@@ -19,6 +19,8 @@ export default class Producto extends BaseModel {
   @column()
   declare descripcion: string | null
 
+  @column()
+  declare id_gestion: number
 
   @column()
   declare estado: boolean

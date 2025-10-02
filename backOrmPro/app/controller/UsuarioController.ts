@@ -118,7 +118,7 @@ export default class UsuarioController {
 
   
 
-    const usuario = await usuarioService.actualizar(params.id, datos, user.id_empresa)
+    const usuario = await usuarioService.actualizar(params.id, datos, user.empresaId)
     return response.json({ mensaje: 'Usuario actualizado correctamente', datos: usuario })
   } catch (error) {
     console.error("Error en actualizarUsuario:", error)
