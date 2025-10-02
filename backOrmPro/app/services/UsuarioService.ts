@@ -100,6 +100,9 @@ class UsuarioService {
     .where('id', id)
     .andWhere('id_empresa', empresaId)
     .first()
+    
+    console.log('Service actualizar => id:', id, 'empresaId:', empresaId)
+
 
   if (!usuario) return { error: 'Usuario no encontrado o autorizado' }
 
