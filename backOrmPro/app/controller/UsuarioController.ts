@@ -119,6 +119,10 @@ export default class UsuarioController {
    console.log('params.id:', params.id)
    console.log('user.id_empresa:', user.id_empresa)
 
+   console.log('BODY:', request.body())
+console.log('DATOS ONLY:', datos)
+
+
 
     const usuario = await usuarioService.actualizar(params.id, datos, user.id_empresa)
     return response.json({ mensaje: 'Usuario actualizado correctamente', datos: usuario })

@@ -100,8 +100,9 @@ class UsuarioService {
     .where('id', id)
     .andWhere('id_empresa', empresaId)
     .first()
-    
+
     console.log('Service actualizar => id:', id, 'empresaId:', empresaId)
+    console.log('Datos que se van a mergear:', datos)
 
 
   if (!usuario) return { error: 'Usuario no encontrado o autorizado' }
