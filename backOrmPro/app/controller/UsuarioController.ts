@@ -114,14 +114,9 @@ export default class UsuarioController {
       'nombre_usuario',
       'correo_electronico',
       'cargo',
-      'contrasena',
-      'confirmacion'
     ])
 
-    // Validación de contraseñas
-    if (datos.contrasena && datos.confirmacion && datos.contrasena !== datos.confirmacion) {
-      return response.badRequest({ error: 'Las contraseñas no coinciden' })
-    }
+  
 
     const usuario = await usuarioService.actualizar(params.id, datos, user.id_empresa)
     return response.json({ mensaje: 'Usuario actualizado correctamente', datos: usuario })

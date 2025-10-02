@@ -103,13 +103,8 @@ class UsuarioService {
 
   if (!usuario) return { error: 'Usuario no encontrado o autorizado' }
 
-  // Si viene contraseña, la encriptamos antes de guardar
-  if (datos.contrasena) {
-    const hash = await bcrypt.hash(datos.contrasena, 10) // función que uses en tu modelo
-    usuario.merge({ ...datos, contrasena: hash })
-  } else {
-    usuario.merge(datos)
-  }
+
+  usuario.merge(datos)
 
   await usuario.save()
   return usuario
