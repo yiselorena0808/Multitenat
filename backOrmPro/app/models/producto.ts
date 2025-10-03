@@ -10,8 +10,6 @@ export default class Producto extends BaseModel {
   @column({ isPrimary: true })
   declare id_producto: number
 
-  @column()
-  declare id_cargo: number
 
   @column()
   declare nombre: string
@@ -19,8 +17,6 @@ export default class Producto extends BaseModel {
   @column()
   declare descripcion: string | null
 
-  @column()
-  declare id_gestion: number
 
   @column()
   declare estado: boolean

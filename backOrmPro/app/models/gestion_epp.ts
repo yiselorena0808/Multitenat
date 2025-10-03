@@ -26,9 +26,6 @@ export default class GestionEpp extends BaseModel {
   declare cedula: string
 
   @column()
-  declare id_cargo: number
-
-  @column()
   declare cantidad: number
 
   @column()
@@ -46,8 +43,7 @@ export default class GestionEpp extends BaseModel {
   @column()
   declare id_area: number
 
-  @column()
-  declare id_productos: number
+
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

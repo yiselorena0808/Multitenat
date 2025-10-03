@@ -8,7 +8,7 @@ export default class extends BaseSchema {
       table.increments('id_area')
       table.string('nombre')
       table.string('codigo')
-      table.string('descripcion')
+      table.text('descripcion').nullable()
       table.integer('id_empresa').notNullable().references('id_empresa').inTable('empresas').onDelete('CASCADE')
       table.boolean('estado').defaultTo(true)
       table.string('esquema').nullable()

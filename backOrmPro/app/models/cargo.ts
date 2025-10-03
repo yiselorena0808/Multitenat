@@ -11,29 +11,26 @@ export default class Cargo extends BaseModel {
   declare id_cargo: number
 
   @column()
-  declare cargo: String
+  declare cargo: string
 
   @column()
   declare id_empresa: number
 
   @column()
-  declare id_gestion: number
+  declare id_gestion: number   // 👈 un cargo pertenece a una gestión
 
-  @column()
-  declare id_producto: number
-
-  @belongsTo(() => Empresa)
+  @belongsTo(() => Empresa, { foreignKey: 'id_empresa' })
   declare empresa: BelongsTo<typeof Empresa>
 
-  @belongsTo(() => GestionEpp)
+  @belongsTo(() => GestionEpp, { foreignKey: 'id_gestion' })
   declare gestion: BelongsTo<typeof GestionEpp>
 
   @manyToMany(() => Producto, {
-      pivotTable: 'cargo_productos',
-      localKey: 'id_cargo',
-      pivotForeignKey: 'cargo_id',
-      relatedKey: 'id_producto',
-      pivotRelatedForeignKey: 'proucto_id',
-    })
-    declare productos: ManyToMany<typeof Producto>
+    pivotTable: 'cargo_productos',
+    localKey: 'id_cargo',
+    pivotForeignKey: 'id_cargo',
+    relatedKey: 'id_producto',
+    pivotRelatedForeignKey: 'id_producto',
+  })
+  declare productos: ManyToMany<typeof Producto>
 }
