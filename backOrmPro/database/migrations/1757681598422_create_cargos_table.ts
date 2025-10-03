@@ -13,6 +13,10 @@ export default class extends BaseSchema {
       table.integer('id_gestion').references('id').inTable('gestion_epp')
         .onDelete('CASCADE').onUpdate('CASCADE')
         .notNullable()
+
+        table.integer('id_producto').references('id_producto').inTable('productos')
+        .onDelete('CASCADE').onUpdate('CASCADE')
+        .notNullable()
     })
   }
   async down() {
