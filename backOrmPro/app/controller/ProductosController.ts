@@ -10,12 +10,11 @@ export default class ProductosController {
       this.service = new ProductoService()
     }
 
-  // Crear producto
+   // Crear producto
   async store({ request, response }: HttpContext) {
     const productoSchema = schema.create({
       nombre: schema.string(),
       descripcion: schema.string.optional(),
-      cargo_asignado: schema.string.optional(),
       estado: schema.boolean.optional(),
     })
 
@@ -28,10 +27,9 @@ export default class ProductosController {
     })
   }
 
-  // Listar productos (opcionalmente filtrados por cargo)
-  async index({ auth, response }: HttpContext) {
-    const usuario = auth.user!
-    const productos = await this.service.listarProductos(String(usuario.id_empresa))
+  // Listar productos (todos activos, o podrías extender con cargoId)
+  async index({ response }: HttpContext) {
+    const productos = await this.service.listarProductos()
     return response.ok(productos)
   }
 
@@ -43,7 +41,7 @@ export default class ProductosController {
 
   // Actualizar un producto
   async update({ params, request, response }: HttpContext) {
-    const data = request.only(['nombre', 'descripcion', 'cargo_asignado', 'estado'])
+    const data = request.only(['nombre', 'descripcion', 'estado'])
     const producto = await this.service.actualizarProducto(params.id, data)
 
     return response.ok({

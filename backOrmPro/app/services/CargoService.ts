@@ -7,9 +7,8 @@ export default class CargoService {
     return await Cargo.all()
   }
 
-  public async crear(data: { cargo: string }) {
-    const cargo = await Cargo.create(data)
-    return cargo
+  public async crear(data: { cargo: string, id_empresa: number }) {
+    return await Cargo.create(data)
   }
 
   public async actualizar(id_cargo: number, data: { cargo: string }) {
@@ -25,18 +24,26 @@ export default class CargoService {
   }
 
   public async productosPorCargoId(id_cargo: number) {
-    const cargo = await Cargo.query().where('id_cargo', id_cargo).preload('productos').firstOrFail()
+    const cargo = await Cargo.query()
+      .where('id_cargo', id_cargo)   // 👈 corregido
+      .preload('productos')
+      .firstOrFail()
+
     return cargo.productos
   }
 
   public async productosPorCargoNombre(nombre: string) {
-    const cargo = await Cargo.query().where('cargo', nombre).preload('productos').firstOrFail()
+    const cargo = await Cargo.query()
+      .where('cargo', nombre)
+      .preload('productos')
+      .firstOrFail()
+
     return cargo.productos
   }
 
   async vincularProductos(cargoId: number, productosIds: number[]) {
     const cargo = await Cargo.findOrFail(cargoId)
-    await cargo.related('productos').attach(productosIds) 
+    await cargo.related('productos').attach(productosIds)
     return await cargo.load('productos')
   }
 
@@ -48,31 +55,29 @@ export default class CargoService {
 
   async reemplazarProductos(cargoId: number, productosIds: number[]) {
     const cargo = await Cargo.findOrFail(cargoId)
-    await cargo.related('productos').sync(productosIds) 
+    await cargo.related('productos').sync(productosIds)
     return await cargo.load('productos')
   }
 
   async crearProductoYAsociar(cargoId: number, data: any) {
     const cargo = await Cargo.findOrFail(cargoId)
     const producto = await Producto.create(data)
-
-    // lo asocia en la tabla pivote
     await cargo.related('productos').attach([producto.id_producto])
-
     return producto
   }
 
-  // Asociar un producto existente a un cargo
   async asociarProductoExistente(cargoId: number, productoId: number) {
     const cargo = await Cargo.findOrFail(cargoId)
     await cargo.related('productos').attach([productoId])
     return await cargo.load('productos')
   }
 
-  // Listar productos de un cargo
   async listarProductos(cargoId: number) {
-    const cargo = await Cargo.query().where('id', cargoId).preload('productos').firstOrFail()
+    const cargo = await Cargo.query()
+      .where('id_cargo', cargoId)   // 👈 corregido
+      .preload('productos')
+      .firstOrFail()
+
     return cargo.productos
   }
-
 }

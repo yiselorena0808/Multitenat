@@ -1,28 +1,29 @@
 import GestionEpp from '#models/gestion_epp'
-import Producto from '#models/producto'
+import Cargo from '#models/cargo'
 
 class GestionEppService {
   async crear(
-    datos: Partial<GestionEpp>,
-    productosIds: number[],
-    usuario: any // usuario logueado
-  ) {
-    const gestion = await GestionEpp.create({
-      ...datos,
-      id_usuario: usuario.id,
-      nombre: usuario.nombre,
-      apellido: usuario.apellido,
-      id_cargo: usuario.id_cargo,
-      id_empresa: usuario.id_empresa,
-      id_area: usuario.id_area,
-    })
+  datos: Partial<GestionEpp>,
+  usuario: any,
+  productosIds?: number[],   // 👈 opcional
+  idCargo?: number           // 👈 opcional si quieres vincular a un cargo específico
+) {
+  const gestion = await GestionEpp.create({
+    ...datos,
+    id_usuario: usuario.id,
+    nombre: usuario.nombre,
+    apellido: usuario.apellido,
+    id_empresa: usuario.id_empresa,
+    id_area: usuario.id_area,
+    id_cargo: idCargo ?? null,
+  })
 
-    if (productosIds && productosIds.length > 0) {
-      await gestion.related('productos').attach(productosIds)
-    }
-
-    return await gestion.preload('productos')
+  if (productosIds && productosIds.length > 0) {
+    await gestion.related('productos').attach(productosIds)
   }
+
+  return await gestion.preload('productos')
+}
 
   async listar(empresaId: number) {
     return await GestionEpp.query()
@@ -86,11 +87,12 @@ class GestionEppService {
       gestiones,
     }
   }
-  async productosPorCargo(id_cargo: number) {
-    return await Producto.query()
-      .where('cargo_asignado', id_cargo)
-      .andWhere('estado', true)
-  }
+  
+async productosPorCargo(id_cargo: number) {
+  const cargo = await Cargo.findOrFail(id_cargo)
+  await cargo.load('productos', (query) => query.where('estado', true))
+  return cargo.productos
+}
 }
 
 export default GestionEppService

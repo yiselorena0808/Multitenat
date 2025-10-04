@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column, manyToMany, hasMany } from '@adonisjs/lucid/orm'
-import type { BelongsTo, ManyToMany, HasMany } from '@adonisjs/lucid/types/relations'
+import { BaseModel, belongsTo, column, manyToMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Usuario from '#models/usuario'
 import Empresa from '#models/empresa'
 import Area from '#models/area'
@@ -32,6 +32,9 @@ export default class GestionEpp extends BaseModel {
   declare importancia: string
 
   @column()
+ declare id_cargo: number | null
+
+  @column()
   declare estado: string | null
 
   @column()
@@ -51,10 +54,8 @@ export default class GestionEpp extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  @hasMany(() => Cargo, {
-    foreignKey: 'id_cargo',
-  })
-  declare cargo: HasMany<typeof Cargo>
+  @belongsTo(() => Cargo)
+  declare cargo: BelongsTo<typeof Cargo>
 
   @belongsTo(() => Usuario)
   declare usuario: BelongsTo<typeof Usuario>
