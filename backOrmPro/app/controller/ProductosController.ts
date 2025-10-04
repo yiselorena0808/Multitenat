@@ -55,4 +55,19 @@ export default class ProductosController {
     const result = await this.service.eliminarProducto(params.id)
     return response.ok(result)
   }
+
+  async listarPorCargo({ params, response }: HttpContext) {
+  const productos = await this.service.listarPorCargo(params.id)
+  return response.ok(productos)
+}
+
+async listarPorCargoNombre({ params, response }: HttpContext) {
+  try {
+    const productos = await this.service.listarPorCargoNombre(params.nombre)
+    return response.ok(productos)
+  } catch (error) {
+    return response.notFound({ message: error.message })
+  }
+}
+
 }

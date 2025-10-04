@@ -43,4 +43,24 @@ export default class ProductoService {
     await producto.delete()
     return { message: 'Producto eliminado con éxito' }
   }
+
+  // 📦 Listar productos por ID de cargo
+async listarPorCargo(id_cargo: number) {
+  const productos = await Producto.query()
+    .where('cargo_asignado', id_cargo)
+  return productos
+}
+
+// 📦 Listar productos por nombre de cargo
+async listarPorCargoNombre(nombre_cargo: string) {
+  const cargo = await Cargo.findBy('nombre', nombre_cargo)
+  if (!cargo) {
+    throw new Error('Cargo no encontrado')
+  }
+
+  const productos = await Producto.query()
+    .where('cargo_asignado', cargo.id_cargo)
+  return productos
+}
+
 }
