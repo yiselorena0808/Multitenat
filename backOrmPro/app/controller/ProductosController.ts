@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { schema } from '@adonisjs/validator'
-import ProductoService from '#services/ProductoService'
+import ProductoService from '../services/ProductoService.js'
 
 export default class ProductosController {
 
