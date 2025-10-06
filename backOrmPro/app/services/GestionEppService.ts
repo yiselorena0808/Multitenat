@@ -5,8 +5,8 @@ class GestionEppService {
   async crear(
   datos: Partial<GestionEpp>,
   usuario: any,
-  productosIds?: number[],   // 👈 opcional
-  idCargo?: number           // 👈 opcional si quieres vincular a un cargo específico
+  id_producto?: number[],   // 👈 opcional
+  id_cargo?: number           // 👈 opcional si quieres vincular a un cargo específico
 ) {
   const gestion = await GestionEpp.create({
     ...datos,
@@ -15,11 +15,11 @@ class GestionEppService {
     apellido: usuario.apellido,
     id_empresa: usuario.id_empresa,
     id_area: usuario.id_area,
-    id_cargo: idCargo ?? null,
+    id_cargo: id_cargo ?? null,
   })
 
-  if (productosIds && productosIds.length > 0) {
-    await gestion.related('productos').attach(productosIds)
+  if (id_producto && id_producto.length > 0) {
+    await gestion.related('productos').attach(id_producto)
   }
 
   return await gestion.preload('productos')
@@ -46,7 +46,7 @@ class GestionEppService {
   async actualizar(
   id: number,
   datos: Partial<GestionEpp>,
-  productosIds: number[] | undefined,
+  id_producto: number[] | undefined,
   usuario: any
 ) {
   const gestion = await GestionEpp.query()
@@ -61,8 +61,8 @@ class GestionEppService {
   gestion.merge(datos)
   await gestion.save()
 
-  if (Array.isArray(productosIds)) {
-    await gestion.related('productos').sync(productosIds)
+  if (Array.isArray(id_producto)) {
+    await gestion.related('productos').sync(id_producto)
   }
 
   return await gestion.preload('productos')

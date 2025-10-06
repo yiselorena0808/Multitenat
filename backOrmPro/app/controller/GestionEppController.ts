@@ -68,7 +68,7 @@ async crearGestion({ request, response, auth }: HttpContext) {
       importancia: schema.string.optional(),
       estado: schema.string.optional(),
       productosIds: schema.array.optional().members(schema.number()),
-      idCargo: schema.number.optional(),
+      id_cargo: schema.number.optional(),
       cantidad: schema.number.optional(),
     })
 
