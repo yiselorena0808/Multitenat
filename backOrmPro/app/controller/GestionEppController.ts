@@ -62,26 +62,41 @@ async crearGestion({ request, response, auth }: HttpContext) {
   }
 }
 
-async actualizarEstado({ params, request, response }: HttpContext) {
-  try {
-    const usuario = (request as any).user
-    if (!usuario) {
-      return response.status(401).json({ error: 'Usuario no autenticado' })
+ async actualizarGestion({ params, request, auth, response }: HttpContext) {
+    const gestionSchema = schema.create({
+      cedula: schema.string.optional(),
+      importancia: schema.string.optional(),
+      estado: schema.string.optional(),
+      productosIds: schema.array.optional().members(schema.number()),
+      idCargo: schema.number.optional(),
+      cantidad: schema.number.optional(),
+    })
+
+    const data = await request.validate({ schema: gestionSchema })
+    const usuario = auth.user!
+
+    try {
+      const gestion = await gestionService.actualizar(
+        Number(params.id),
+        {
+          cedula: data.cedula,
+          importancia: data.importancia,
+          estado: data.estado === 'activo',
+          cantidad: data.cantidad,
+        },
+        data.productosIds,
+        usuario
+      )
+
+      return response.ok({
+        mensaje: 'Gestión actualizada correctamente',
+        datos: gestion,
+      })
+    } catch (err) {
+      console.error('❌ Error actualizando gestión:', err)
+      return response.badRequest({ mensaje: err.message })
     }
-
-    const { datos, productosIds } = request.body()
-    const actualizado = await gestionService.actualizar(
-      params.id,
-      datos,
-      productosIds,
-      usuario  // 👈 aquí va el usuario, no empresaId
-    )
-
-    return response.json({ msj: 'estado actualizado', datos: actualizado })
-  } catch (error) {
-    return response.json({ error: error.message })
   }
-}
 
 async eliminarGestion({ params, response, request }: HttpContext) {
   try {

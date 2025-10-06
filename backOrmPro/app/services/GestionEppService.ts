@@ -44,27 +44,30 @@ class GestionEppService {
   }
 
   async actualizar(
-    id: number,
-    datos: Partial<GestionEpp>,
-    productosIds: number[] | undefined,
-    usuario: any
-  ) {
-    const gestion = await GestionEpp.query()
-      .where('id', id)
-      .andWhere('id_empresa', usuario.id_empresa)
-      .first()
+  id: number,
+  datos: Partial<GestionEpp>,
+  productosIds: number[] | undefined,
+  usuario: any
+) {
+  const gestion = await GestionEpp.query()
+    .where('id', id) // 👈 clave correcta
+    .andWhere('id_empresa', usuario.id_empresa)
+    .first()
 
-    if (!gestion) throw new Error('Gestión no encontrada')
-
-    gestion.merge(datos)
-    await gestion.save()
-
-    if (productosIds) {
-      await gestion.related('productos').sync(productosIds)
-    }
-
-    return await gestion.preload('productos')
+  if (!gestion) {
+    throw new Error('Gestión no encontrada')
   }
+
+  gestion.merge(datos)
+  await gestion.save()
+
+  if (Array.isArray(productosIds)) {
+    await gestion.related('productos').sync(productosIds)
+  }
+
+  return await gestion.preload('productos')
+}
+
 
   async eliminar(id: any, empresaId: number) {
     const gestion = await GestionEpp.query()
