@@ -9,7 +9,7 @@ const gestionService = new GestionEppService()
 
 
 class GestionController {
-async crearGestion({ request, response, auth }: HttpContext) {
+async crearGestion({ request, response }: HttpContext) {
     const gestionSchema = schema.create({
       cedula: schema.string(),
       id_cargo: schema.number(), // o schema.number() si es un id
@@ -20,7 +20,7 @@ async crearGestion({ request, response, auth }: HttpContext) {
     })
 
     const data = await request.validate({ schema: gestionSchema })
-    const usuario = auth.user!
+    const usuario = (request as any).user
 
     try {
          const { cedula, id_cargo, importancia, estado, cantidad, productos } = data
@@ -62,7 +62,7 @@ async crearGestion({ request, response, auth }: HttpContext) {
   }
 }
 
- async actualizarGestion({ params, request, auth, response }: HttpContext) {
+ async actualizarGestion({ params, request, response }: HttpContext) {
     const gestionSchema = schema.create({
       cedula: schema.string.optional(),
       importancia: schema.string.optional(),
@@ -73,7 +73,7 @@ async crearGestion({ request, response, auth }: HttpContext) {
     })
 
     const data = await request.validate({ schema: gestionSchema })
-    const usuario = auth.user!
+    const usuario = (request as any).user
 
     try {
       const gestion = await gestionService.actualizar(
