@@ -46,21 +46,27 @@ export default class ProductoService {
 
   // 📦 Listar productos por ID de cargo
 async listarPorCargo(id_cargo: number) {
-  const productos = await Producto.query()
-    .where('cargo_asignado', id_cargo)
-  return productos
-}
+    // Buscar el cargo y cargar su relación con productos
+    const cargo = await Cargo.query()
+      .where('id', id_cargo)
+      .preload('productos') // 👈 esto carga los productos asociados
+      .first()
 
-// 📦 Listar productos por nombre de cargo
-async listarPorCargoNombre(nombre_cargo: string) {
-  const cargo = await Cargo.findBy('nombre', nombre_cargo)
-  if (!cargo) {
-    throw new Error('Cargo no encontrado')
+    if (!cargo) throw new Error('Cargo no encontrado')
+
+    return cargo.productos // 👈 devolvemos los productos del cargo
   }
 
-  const productos = await Producto.query()
-    .where('cargo_asignado', cargo.id_cargo)
-  return productos
-}
+  async listarPorCargoNombre(nombre_cargo: string) {
+    const cargo = await Cargo.query()
+      .where('nombre', nombre_cargo)
+      .preload('productos')
+      .first()
+
+    if (!cargo) throw new Error('Cargo no encontrado')
+
+    return cargo.productos
+  }
+
 
 }
