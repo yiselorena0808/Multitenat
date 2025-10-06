@@ -16,7 +16,7 @@ export default class extends BaseSchema {
       table.string('cedula')
       table.integer('cantidad')
       table.string('importancia')
-      table.string('estado').nullable()
+      table.boolean('estado').nullable()
       table.integer('id_cargo').references('id_cargo').inTable('cargos')
         .onDelete('SET NULL').onUpdate('CASCADE')
         .nullable()

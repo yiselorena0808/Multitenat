@@ -1,31 +1,51 @@
 import GestionEppService from '#services/GestionEppService'
 import { messages } from '@vinejs/vine/defaults'
 import type { HttpContext} from '@adonisjs/core/http'
+import { schema } from '@adonisjs/validator'
+
 
 
 const gestionService = new GestionEppService()
 
 
 class GestionController {
-async crearGestion({ request, response }: HttpContext) {
-  const usuario = (request as any).user
-  const { cedula, importancia, estado, fecha_creacion, productosIds, idCargo } = request.body()
+async crearGestion({ request, response, auth }: HttpContext) {
+    const gestionSchema = schema.create({
+      cedula: schema.string(),
+      cargo: schema.string(), // o schema.number() si es un id
+      importancia: schema.string.optional(),
+      estado: schema.string.optional(), // "activo", "inactivo"
+      cantidad: schema.number.optional(),
+      productos: schema.array().members(schema.number()), // array de ids
+    })
 
-  try {
+    const data = await request.validate({ schema: gestionSchema })
+    const usuario = auth.user!
+
+    try {
+         const { cedula, cargo, importancia, estado, cantidad, productos } = data
+
+    // 3️⃣ Crear la gestión usando el servicio
     const gestion = await gestionService.crear(
-      { cedula, importancia, estado, fecha_creacion },
+      {
+        cedula,
+        importancia,
+        estado: estado === 'activo',
+        cantidad,
+      },
       usuario,
-      productosIds,
-      idCargo
+      productos,
+      cargo // si es idCargo o nombre, lo manejas en el service
     )
 
-    return response.created({
+     return response.created({
       mensaje: 'Gestión creada correctamente',
       datos: gestion,
     })
-  } catch (err: any) {
-    return response.status(400).send({ mensaje: err.message })
-  }
+    } catch (error) {
+      console.error('Error al crear gestión:', error)
+      return response.badRequest({ mensaje: error.message })
+    }
 }
 
  async listarGestiones({ response, request }: HttpContext) {

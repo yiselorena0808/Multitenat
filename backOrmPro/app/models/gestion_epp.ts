@@ -35,7 +35,7 @@ export default class GestionEpp extends BaseModel {
  declare id_cargo: number | null
 
   @column()
-  declare estado: string | null
+  declare estado: boolean
 
   @column()
   declare fecha_creacion: string
