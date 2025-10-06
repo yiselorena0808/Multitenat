@@ -10,7 +10,7 @@ export default class CargosController {
 }
 
 async crear({ request, response }: HttpContext) {
-  const data = request.only(['cargo', 'id_empresa']) // 👈 quitamos id_gestion
+  const data = request.only(['cargo', 'id_empresa', 'id_producto']) // 👈 quitamos id_gestion
   const cargo = await service.crear(data)
   return response.created(cargo)
 }
