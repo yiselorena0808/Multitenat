@@ -1,9 +1,11 @@
 import { defineConfig, drivers } from '@adonisjs/core/hash'
 
 const hashConfig = defineConfig({
-  default: 'scrypt',
-
+  default: 'bcrypt',
   list: {
+    bcrypt: drivers.bcrypt({
+      rounds: 10,
+    }),
     scrypt: drivers.scrypt({
       cost: 16384,
       blockSize: 8,
@@ -14,6 +16,10 @@ const hashConfig = defineConfig({
 })
 
 export default hashConfig
+
+declare module '@adonisjs/core/types' {
+  export interface HashersList extends InferHashers<typeof hashConfig> {}
+}
 
 /**
  * Inferring types for the list of hashers you have configured
