@@ -11,6 +11,6 @@ const authJwt = new AuthJwtMiddleware()
 Route.group(() => {
 Route.post('/crearGestion', gestion.crearGestion)
 Route.get('/listarGestiones', gestion.listarGestiones)
-Route.put('/actualizarEstadoGestion/:id', gestion.actualizarEstado)
+Route.put('/actualizarEstadoGestion/:id', gestion.actualizarGestion)
 Route.delete('/eliminarGestion/:id', gestion.eliminarGestion)
 }).use(authJwt.handle.bind(authJwt))
