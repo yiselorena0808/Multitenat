@@ -12,7 +12,7 @@ class GestionController {
 async crearGestion({ request, response, auth }: HttpContext) {
     const gestionSchema = schema.create({
       cedula: schema.string(),
-      cargo: schema.string(), // o schema.number() si es un id
+      id_cargo: schema.number(), // o schema.number() si es un id
       importancia: schema.string.optional(),
       estado: schema.string.optional(), // "activo", "inactivo"
       cantidad: schema.number.optional(),
@@ -23,7 +23,7 @@ async crearGestion({ request, response, auth }: HttpContext) {
     const usuario = auth.user!
 
     try {
-         const { cedula, cargo, importancia, estado, cantidad, productos } = data
+         const { cedula, id_cargo, importancia, estado, cantidad, productos } = data
 
     // 3️⃣ Crear la gestión usando el servicio
     const gestion = await gestionService.crear(
@@ -35,7 +35,7 @@ async crearGestion({ request, response, auth }: HttpContext) {
       },
       usuario,
       productos,
-      cargo // si es idCargo o nombre, lo manejas en el service
+      id_cargo // si es idCargo o nombre, lo manejas en el service
     )
 
      return response.created({
