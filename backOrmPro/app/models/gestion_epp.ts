@@ -67,7 +67,7 @@ export default class GestionEpp extends BaseModel {
   declare area: BelongsTo<typeof Area>
 
   @manyToMany(() => Producto, {
-    pivotTable: 'gestion_productos',
+    pivotTable: 'gestion_epp_productos',
     localKey: 'id',
     pivotForeignKey: 'gestion_id',
     relatedKey: 'id_producto',

@@ -29,7 +29,7 @@ export default class Producto extends BaseModel {
   declare updatedAt: DateTime
 
   @manyToMany(() => GestionEpp, {
-    pivotTable: 'gestion_productos',
+    pivotTable: 'gestion_epp_productos',
     localKey: 'id_producto',
     pivotForeignKey: 'producto_id',
     relatedKey: 'id',
