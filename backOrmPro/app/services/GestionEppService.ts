@@ -15,7 +15,7 @@ class GestionEppService {
     nombre: usuario.nombre,
     apellido: usuario.apellido,
     id_empresa: usuario.id_empresa,
-    id_area: usuario.id_area,
+    id_area: id_area ?? usuario.id_area,
     id_cargo: id_cargo ?? null,
   })
 

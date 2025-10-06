@@ -16,10 +16,17 @@ async crear({ request, response }: HttpContext) {
 }
 
 async actualizar({ params, request, response }: HttpContext) {
-  const data = request.only(['cargo'])
-  const cargo = await service.actualizar(params.id, data)
-  return response.json(cargo)
+  try {
+    const data = request.only(['cargo'])
+    const id_cargo = params.id_cargo
+    const cargo = await service.actualizar(id_cargo, data)
+    return response.ok(cargo)
+  } catch (error) {
+    console.error('Error al actualizar el cargo:', error)
+    return response.status(500).json({ error: 'Error al actualizar el cargo' })
 }
+}
+
 
 async eliminar({ params, response }: HttpContext) {
   await service.eliminar(params.id) // 👈 usamos params.id, no params.id_cargo
