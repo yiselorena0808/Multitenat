@@ -16,6 +16,7 @@ async crearGestion({ request, response }: HttpContext) {
       importancia: schema.string.optional(),
       estado: schema.string.optional(), // "activo", "inactivo"
       cantidad: schema.number.optional(),
+      id_area: schema.number.optional(),
       productos: schema.array().members(schema.number()), // array de ids
     })
 
@@ -23,7 +24,7 @@ async crearGestion({ request, response }: HttpContext) {
     const usuario = (request as any).user
 
     try {
-         const { cedula, id_cargo, importancia, estado, cantidad, productos } = data
+         const { cedula, id_cargo, importancia, estado, cantidad, productos, id_area } = data
 
     // 3️⃣ Crear la gestión usando el servicio
     const gestion = await gestionService.crear(
@@ -35,7 +36,8 @@ async crearGestion({ request, response }: HttpContext) {
       },
       usuario,
       productos,
-      id_cargo // si es idCargo o nombre, lo manejas en el service
+      id_cargo,
+      id_area 
     )
 
      return response.created({
@@ -67,6 +69,7 @@ async crearGestion({ request, response }: HttpContext) {
       cedula: schema.string.optional(),
       importancia: schema.string.optional(),
       estado: schema.string.optional(),
+      id_area: schema.number.optional(),
       productosIds: schema.array.optional().members(schema.number()),
       id_cargo: schema.number.optional(),
       cantidad: schema.number.optional(),
@@ -83,6 +86,8 @@ async crearGestion({ request, response }: HttpContext) {
           importancia: data.importancia,
           estado: data.estado === 'activo',
           cantidad: data.cantidad,
+          id_area: data.id_area,
+          id_cargo: data.id_cargo,
         },
         data.productosIds,
         usuario

@@ -6,7 +6,8 @@ class GestionEppService {
   datos: Partial<GestionEpp>,
   usuario: any,
   id_producto?: number[],   // 👈 opcional
-  id_cargo?: number           // 👈 opcional si quieres vincular a un cargo específico
+  id_cargo?: number,
+  id_area?: number          // 👈 opcional si quieres vincular a un cargo específico
 ) {
   const gestion = await GestionEpp.create({
     ...datos,
