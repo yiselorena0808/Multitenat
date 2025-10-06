@@ -11,9 +11,6 @@ export default class extends BaseSchema {
         .onDelete('CASCADE').onUpdate('CASCADE')
         .notNullable()
 
-        table.integer('id_producto').references('id_producto').inTable('productos')
-        .onDelete('CASCADE').onUpdate('CASCADE')
-        .notNullable()
     })
   }
   async down() {
