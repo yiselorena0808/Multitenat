@@ -2,6 +2,8 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { schema } from '@adonisjs/validator'
 import ProductoService from '../services/ProductoService.js'
 
+console.log('🧩 ProductoService importado:', ProductoService)
+
 export default class ProductosController {
 
    private service: ProductoService
