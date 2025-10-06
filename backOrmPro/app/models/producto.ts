@@ -37,8 +37,8 @@ export default class Producto extends BaseModel {
 
 @manyToMany(() => Cargo, {
   pivotTable: 'cargo_productos',
-  pivotForeignKey: 'id_producto',
-  pivotRelatedForeignKey: 'id_cargo',
+  pivotForeignKey: 'producto_id',
+  pivotRelatedForeignKey: 'cargo_id',
 })
 declare cargos: ManyToMany<typeof Cargo>
 
