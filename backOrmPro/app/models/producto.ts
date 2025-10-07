@@ -8,7 +8,7 @@ export default class Producto extends BaseModel {
   public static table = 'productos'
   public static primaryKey = 'id_producto' 
 
-  @column({ isPrimary: true })
+  @column({ isPrimary: true, columnName: 'id_producto' })
   declare id_producto: number
 
 
