@@ -6,6 +6,7 @@ import Cargo from './cargo.js'
 
 export default class Producto extends BaseModel {
   public static table = 'productos'
+  public static primaryKey = 'id_producto' 
 
   @column({ isPrimary: true })
   declare id_producto: number
