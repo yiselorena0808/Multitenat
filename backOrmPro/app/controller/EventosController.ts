@@ -3,7 +3,7 @@ import EventosService from '../services/EventosService.js'
 
 const service = new EventosService()
 
-export default class PublicacionBlogController {
+export default class EventosController {
 
   async listar({ response }: HttpContext) {
     const publicaciones = await service.listar()

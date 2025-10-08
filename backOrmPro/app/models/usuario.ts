@@ -5,7 +5,7 @@ import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Empresa from './empresa.js'
 import Area from './area.js'
 import Reporte from './reporte.js'
-import PublicacionBlog from './eventos.js'
+import Eventos from './eventos.js'
 import GestionEpp from './gestion_epp.js'
 import ListaChequeo from './lista_chequeo.js'
 import ActividadLudica from './actividad_ludica.js'
@@ -57,8 +57,8 @@ export default class Usuario extends BaseModel {
   @hasMany(() => GestionEpp)
   declare gestionEpp: HasMany<typeof GestionEpp>
 
-  @hasMany(() => PublicacionBlog)
-  declare publicacionBlogs: HasMany<typeof PublicacionBlog>
+  @hasMany(() => Eventos)
+  declare publicacionBlogs: HasMany<typeof Eventos>
 
   @hasMany(() => Reporte)
   declare reportes: HasMany<typeof Reporte>

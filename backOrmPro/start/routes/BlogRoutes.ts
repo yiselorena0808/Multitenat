@@ -1,8 +1,8 @@
 import Route from "@adonisjs/core/services/router"
-import BlogController from "../../app/controller/EventosController.js"
+import EventosController from "../../app/controller/EventosController.js"
 import AuthJwtMiddleware from "../../app/middleware/auth_jwt.js"
 
-const blog = new BlogController()
+const blog = new EventosController()
 const authJwt = new AuthJwtMiddleware()
 
 Route.post('/blogs', blog.crear).use(authJwt.handle.bind(authJwt))
