@@ -1,11 +1,30 @@
 import bcrypt from 'bcryptjs'
 import Usuario from '#models/usuario'
 import jwt from 'jsonwebtoken'
+import hash from '@adonisjs/core/services/hash'
+
+
 
 
 const SECRET = process.env.JWT_SECRET || 'sstrict'
 
 class UsuarioService {
+
+  private async verificarContrasena(hashAlmacenado: string, contrasenaPlano: string) {
+    try {
+      // Si es formato nuevo PHC ($bcrypt$...)
+      if (hashAlmacenado.startsWith('$bcrypt$')) {
+        return await hash.verify(hashAlmacenado, contrasenaPlano)
+      }
+
+      // Si es formato clásico ($2b$...)
+      return await bcrypt.compare(contrasenaPlano, hashAlmacenado)
+    } catch (error) {
+      console.error('Error verificando contraseña:', error)
+      return false
+    }
+  }
+
   // Registrar usuario
   async register(
     id_empresa: number,
@@ -59,8 +78,16 @@ class UsuarioService {
 
     if (!usuario) throw new Error('El usuario no existe')
 
-    const isValid = await bcrypt.compare(contrasena, usuario.contrasena)
-    if (!isValid) throw new Error('Contraseña incorrecta')
+      const ok = await this.verificarContrasena(usuario.contrasena, contrasena)
+    if (!ok) {
+      throw new Error('Contraseña incorrecta')
+    }
+
+
+      if (hash.needsReHash(usuario.contrasena)) {
+      usuario.contrasena = await hash.make(contrasena)
+      await usuario.save()
+    }
 
     const token = jwt.sign(
       {
