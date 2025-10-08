@@ -1,5 +1,5 @@
 import Route from "@adonisjs/core/services/router"
-import BlogController from "../../app/controller/PublicacionBlogController.js"
+import BlogController from "../../app/controller/EventosController.js"
 import AuthJwtMiddleware from "../../app/middleware/auth_jwt.js"
 
 const blog = new BlogController()

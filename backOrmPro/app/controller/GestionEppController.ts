@@ -64,6 +64,23 @@ async crearGestion({ request, response }: HttpContext) {
   }
 }
 
+async listarGestionPorId({ params, response, request }: HttpContext) {
+  try {
+    const usuario = (request as any).user 
+    if (!usuario) {
+      return response.status(401).json({ error: 'Usuario no autenticado' })
+    }
+    const empresaId = usuario.id_empresa
+    const gestion = await gestionService.listarId(Number(params.id), empresaId)
+    if (!gestion) {
+      return response.status(404).json({ error: 'Gestión no encontrada' })
+    }
+    return response.json({ msj: 'Gestión encontrada', datos: gestion })
+  } catch (error) {
+    return response.json({ error: error.message })
+  }
+}
+
  async actualizarGestion({ params, request, response }: HttpContext) {
     const gestionSchema = schema.create({
       cedula: schema.string.optional(),

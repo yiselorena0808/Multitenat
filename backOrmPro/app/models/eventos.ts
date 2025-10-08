@@ -4,8 +4,8 @@ import Usuario from './usuario.js'
 import Empresa from './empresa.js'
 import type {BelongsTo} from '@adonisjs/lucid/types/relations'
 
-export default class PublicacionBlog extends BaseModel {
-  public static table = 'publicacion_blogs'
+export default class Eventos extends BaseModel {
+  public static table = 'eventos'
   @column({ isPrimary: true })
   declare id: number
 

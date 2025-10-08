@@ -17,6 +17,8 @@ export default class ListaChequeoController {
         'soat',
         'tecnico',
         'kilometraje',
+        'placa',
+        'observaciones',
         'id_usuario',
         'usuario_nombre',
         'id_empresa'
@@ -70,6 +72,8 @@ export default class ListaChequeoController {
         'modelo',
         'marca',
         'soat',
+        'placa',
+        'observaciones',
         'tecnico',
         'kilometraje',
       ])

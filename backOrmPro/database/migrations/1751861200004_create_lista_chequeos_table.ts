@@ -18,6 +18,8 @@ export default class extends BaseSchema {
       table.string('soat')
       table.string('tecnico')
       table.string('kilometraje')
+      table.string('placa')
+      table.string('observaciones')
       table.integer('id_empresa').references('id_empresa').inTable('empresas')
         .onDelete('CASCADE').onUpdate('CASCADE')
         .notNullable()

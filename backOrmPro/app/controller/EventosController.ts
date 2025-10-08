@@ -1,7 +1,7 @@
 import type { HttpContext} from '@adonisjs/core/http'
-import PublicacionBlogService from '#services/PublicacionBlogService'
+import EventosService from '../services/EventosService.js'
 
-const service = new PublicacionBlogService()
+const service = new EventosService()
 
 export default class PublicacionBlogController {
 
@@ -38,7 +38,7 @@ export default class PublicacionBlogController {
       const publicacion = await service.crear(data, archivoPath, imagenPath)
       return response.json(publicacion)
     } catch (error) {
-      console.error('Error en crear publicación:', error)
+      console.error('Error en crear el evento:', error)
       return response.status(500).json({ message: error.message })
     }
   }

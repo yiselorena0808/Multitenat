@@ -36,6 +36,12 @@ export default class ListaChequeo extends BaseModel {
   declare kilometraje: string
 
   @column()
+  declare placa: string
+
+  @column()
+  declare observaciones: string
+
+  @column()
   declare id_empresa: number
 
   @column.dateTime({ autoCreate: true })

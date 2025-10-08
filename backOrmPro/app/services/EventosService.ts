@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary'
-import PublicacionBlog from '#models/publicacion_blog'
+import Eventos from '../models/eventos.js'
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -7,15 +7,15 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-export default class PublicacionBlogService {
+export default class EventosService {
   // Listar todas las publicaciones
   async listar() {
-    return await PublicacionBlog.query().preload('usuario').preload('empresa')
+    return await Eventos.query().preload('usuario').preload('empresa')
   }
 
   // Listar publicaciones por empresa
   async listarPorEmpresa(id_empresa: number) {
-    return await PublicacionBlog.query()
+    return await Eventos.query()
       .where('id_empresa', id_empresa)
       .preload('usuario')
       .preload('empresa')
@@ -23,7 +23,7 @@ export default class PublicacionBlogService {
 
   // Crear nueva publicación
   async crear(data: any, archivoPath?: string, imagenPath?: string) {
-    const publicacion = new PublicacionBlog()
+    const publicacion = new Eventos()
     publicacion.id_usuario = data.id_usuario
     publicacion.nombre_usuario = data.nombre_usuario
     publicacion.titulo = data.titulo
@@ -55,7 +55,7 @@ export default class PublicacionBlogService {
 
   // Actualizar publicación
   async actualizar(id: number, data: any, archivoPath?: string, imagenPath?: string) {
-    const publicacion = await PublicacionBlog.findOrFail(id)
+    const publicacion = await Eventos.findOrFail(id)
     publicacion.titulo = data.titulo ?? publicacion.titulo
     publicacion.descripcion = data.descripcion ?? publicacion.descripcion
     publicacion.fecha_actividad = data.fecha_actividad ?? publicacion.fecha_actividad
@@ -84,7 +84,7 @@ export default class PublicacionBlogService {
 
   // Eliminar publicación
   async eliminar(id: number) {
-    const publicacion = await PublicacionBlog.findOrFail(id)
+    const publicacion = await Eventos.findOrFail(id)
     await publicacion.delete()
     return { mensaje: 'Publicación eliminada' }
   }
