@@ -65,7 +65,9 @@ export default class GestionEpp extends BaseModel {
   })
   declare empresa: BelongsTo<typeof Empresa>
 
-  @belongsTo(() => Area)
+  @belongsTo(() => Area, {
+      foreignKey: 'id_area',
+  })
   declare area: BelongsTo<typeof Area>
 
   @manyToMany(() => Producto, {
