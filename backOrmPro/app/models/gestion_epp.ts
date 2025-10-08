@@ -60,7 +60,9 @@ export default class GestionEpp extends BaseModel {
   @belongsTo(() => Usuario)
   declare usuario: BelongsTo<typeof Usuario>
 
-  @belongsTo(() => Empresa)
+  @belongsTo(() => Empresa, {
+     foreignKey: 'id_empresa',
+  })
   declare empresa: BelongsTo<typeof Empresa>
 
   @belongsTo(() => Area)
