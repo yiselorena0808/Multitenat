@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo, scope } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Usuario from './usuario.js'
 import Empresa from './empresa.js'
@@ -52,4 +52,8 @@ export default class Reporte extends BaseModel {
 
   @belongsTo(() => Empresa)
   declare empresa: BelongsTo<typeof Empresa>
+
+     static onlyu = scope((query, userId: number, empresaId: number) => {
+    query.where('id_usuario', userId).andWhere('id_empresa', empresaId)
+  })
 }

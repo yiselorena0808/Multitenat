@@ -73,7 +73,7 @@ export default class Usuario extends BaseModel {
 
    static accessTokens = DbAccessTokensProvider.forModel(Usuario)
 
- 
+
 
 
   

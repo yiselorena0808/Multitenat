@@ -125,4 +125,41 @@ export default class ReportesController {
       return response.status(500).json({ error: error.message })
     }
   }
-}
+
+  public async listarMisReportes ({ request, response, auth}: HttpContext) {
+    const user = auth.user
+    if(!user) return response.status(401).json({error: 'Usuario no autenticado'})
+
+      const filtros = {
+      q: request.input('q'),
+      estado: request.input('estado'),
+      fechaDesde: request.input('fechaDesde'),
+      fechaHasta: request.input('fechaHasta'),
+      page: Number(request.input('page') ?? 1),
+      perPage: Math.min(Number(request.input('perPage') ?? 10), 100),
+      orderBy: request.input('orderBy'),
+      orderDir: request.input('orderDir')
+    } as any
+    
+      const page = await reporteService.listarUsuario(user.id, user.id_empresa, filtros)
+      return response.ok({
+        meta: {
+          page: page.currentPage,
+          perPage: page.perPage,
+          total: page.total,
+          lastPage: page.lastPage,
+        },
+        data: page.all(),
+      })
+    }
+
+    public async mostarMio({params, response, auth}: HttpContext) {
+      const user = auth.user
+      if(!user) return response.status(401).json({error: 'Usuario no autenticado'})
+      
+        const reporte = await reporteService.obtenerUsuario(Number(params.id), user.id, user.id_empresa)
+        if(!reporte) return response.status(404).json({ error: 'Reporte no encontrado'})
+          return response.ok(reporte)
+    }
+  }
+
