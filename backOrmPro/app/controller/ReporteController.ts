@@ -11,14 +11,7 @@ export default class ReportesController {
       const usuario = (request as any).user
       if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
 
-     //toma datos del request
-     const id_usuario_front = request.input("id_usuario")
-     const nombre_usuario_front = request.input("nombre_usuario")
-     const id_empresa_front = request.input("id_empresa")
-
-     const id_usuario = id_usuario_front || usuario.id
-     const nombre_usuario = nombre_usuario_front || `${usuario.nombre} ${usuario.apellido || ""}`
-     const id_empresa = id_empresa_front || usuario.id_empresa
+     
 
       const datos: DatosReporte = {
         cargo: request.input("cargo"),
@@ -26,9 +19,9 @@ export default class ReportesController {
         fecha: request.input("fecha"),
         lugar: request.input("lugar"),
         descripcion: request.input("descripcion"),
-        id_usuario,
-        id_empresa,
-        nombre_usuario,
+        id_usuario: usuario.id,
+        id_empresa: usuario.id_empresa,
+        nombre_usuario: usuario.nombre,
         estado: request.input ("estado")
       }
 

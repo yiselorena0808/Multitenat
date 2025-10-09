@@ -17,18 +17,15 @@ export interface DatosReporte {
 export default class ReporteService {
   // Crear reporte
   async crear(idEmpresa: number, datos: DatosReporte) {
-  const reporte = new Reporte()
-
-  reporte.fill({
-    ...datos,
-    // Si datos.id_empresa ya viene del frontend, no lo reemplazamos
-    id_empresa: datos.id_empresa || idEmpresa,
-    estado: datos.estado || "Pendiente",
-  })
-
-  await reporte.save()
-  return reporte
-}
+    const reporte = new Reporte()
+    reporte.fill({
+      ...datos,
+      id_empresa: idEmpresa,
+      estado: datos.estado,
+    })
+    await reporte.save()
+    return reporte
+  }
 
   // Listar reportes por empresa
   async listar(idEmpresa: number) {
