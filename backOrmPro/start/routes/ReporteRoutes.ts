@@ -10,5 +10,5 @@ Route.get('/listarReportes', reporte.listarReportes).use(authJwt.handle.bind(aut
 Route.get('/idReporte/:id', reporte.listarReporteId).use(authJwt.handle.bind(authJwt))
 Route.put('/actualizarReporte/:id', reporte.actualizarReporte).use(authJwt.handle.bind(authJwt))
 Route.delete('/eliminarReporte/:id', reporte.eliminarReporte).use(authJwt.handle.bind(authJwt))
-Route.get('/listarUsu/:id', reporte.listarMisReportes).use(authJwt.handle.bind(authJwt))
+Route.get('/listarUsu', reporte.listarMisReportes).use(authJwt.handle.bind(authJwt))
 Route.get('/listarMio/:id', reporte.mostarMio).use(authJwt.handle.bind(authJwt))
