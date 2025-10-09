@@ -126,9 +126,9 @@ export default class ReportesController {
     }
   }
 
-  public async listarMisReportes ({ request, response, auth}: HttpContext) {
-    const user = auth.user
-    if(!user) return response.status(401).json({error: 'Usuario no autenticado'})
+  public async listarMisReportes ({ request, response}: HttpContext) {
+      const usuario = (request as any).user
+      if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
 
       const filtros = {
       q: request.input('q'),
@@ -141,7 +141,7 @@ export default class ReportesController {
       orderDir: request.input('orderDir')
     } as any
     
-      const page = await reporteService.listarUsuario(user.id, user.id_empresa, filtros)
+      const page = await reporteService.listarUsuario(usuario.id, usuario.id_empresa, filtros)
       return response.ok({
         meta: {
           page: page.currentPage,
@@ -153,11 +153,11 @@ export default class ReportesController {
       })
     }
 
-    public async mostarMio({params, response, auth}: HttpContext) {
-      const user = auth.user
-      if(!user) return response.status(401).json({error: 'Usuario no autenticado'})
+    public async mostarMio({params, response, request}: HttpContext) {
+      const usuario = (request as any).user
+      if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
       
-        const reporte = await reporteService.obtenerUsuario(Number(params.id), user.id, user.id_empresa)
+        const reporte = await reporteService.obtenerUsuario(Number(params.id), usuario.id, usuario.id_empresa)
         if(!reporte) return response.status(404).json({ error: 'Reporte no encontrado'})
           return response.ok(reporte)
     }
