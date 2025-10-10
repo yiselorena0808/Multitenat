@@ -103,7 +103,7 @@ export default class ListaChequeoController {
     }
   }
 
-  public async listarMisReportes ({ request, response}: HttpContext) {
+  public async listarMisListas ({ request, response}: HttpContext) {
         const usuario = (request as any).user
         if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
   
