@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column, manyToMany } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column, manyToMany, scope } from '@adonisjs/lucid/orm'
 import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Usuario from '#models/usuario'
 import Empresa from '#models/empresa'
@@ -77,4 +77,8 @@ export default class GestionEpp extends BaseModel {
     relatedKey: 'id_producto',
   })
   declare productos: ManyToMany<typeof Producto>
+
+       static onlyu = scope((query, userId: number, empresaId: number) => {
+      query.where('id_usuario', userId).andWhere('id_empresa', empresaId)
+    })
 }
