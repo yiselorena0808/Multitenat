@@ -10,4 +10,4 @@ Route.get('/listarActividadesLudicas', actividad.listar).use(authJwt.handle.bind
 Route.post('/crearActividadLudica', actividad.crearActividad).use(authJwt.handle.bind(authJwt))
 Route.put('/actualizarActividadLudica/:id', actividad.actualizar).use(authJwt.handle.bind(authJwt))
 Route.delete('/eliminarActividadLudica/:id', actividad.eliminar).use(authJwt.handle.bind(authJwt))
-
+Route.get('/listarMisActividadesLudicas', actividad.listarMisActividades).use(authJwt.handle.bind(authJwt))
