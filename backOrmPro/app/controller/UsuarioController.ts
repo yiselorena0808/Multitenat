@@ -154,4 +154,31 @@ console.log('DATOS ONLY:', datos)
     const conteo = await usuarioService.conteo()
     return response.json(conteo)
   }
+
+  async bulkRegister({ request, response }: HttpContext) {
+    try {
+      const usuarios = request.input('users') as Array<{
+        id_empresa: string
+        id_area: string
+        nombre: string
+        apellido: string
+        nombre_usuario: string
+        correo_electronico: string
+        cargo: string
+        contrasena: string
+        confirmacion: string
+      }>
+
+      if (!Array.isArray(usuarios) || usuarios.length === 0) {
+        return response.badRequest({ error: 'No se enviaron usuarios' })
+      }
+
+      const resultado = await usuarioService.bulkRegister(usuarios)
+
+      return response.status(201).json(resultado)
+    } catch (error) {
+      console.error('Error bulkRegister:', error)
+      return response.status(500).json({ error: error.message })
+    }
+  }
 }

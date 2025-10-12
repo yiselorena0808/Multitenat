@@ -8,6 +8,19 @@ import hash from '@adonisjs/core/services/hash'
 
 const SECRET = process.env.JWT_SECRET || 'sstrict'
 
+
+type BulkUsuarioDTO = {
+  id_empresa: number | string
+  id_area: number | string
+  nombre: string
+  apellido?: string
+  nombre_usuario: string
+  correo_electronico: string
+  cargo?: string
+  contrasena: string
+  confirmacion: string
+}
+
 class UsuarioService {
 
   private async verificarContrasena(hashAlmacenado: string, contrasenaPlano: string) {
@@ -157,6 +170,38 @@ class UsuarioService {
   async conteo() {
     const usuarios = await Usuario.query()
     return { total: usuarios.length, usuarios }
+  }
+
+  public async bulkRegister(usuarios: BulkUsuarioDTO[]) {
+    let created = 0
+
+    for (const u of usuarios) {
+      if (u.contrasena !== u.confirmacion) continue
+
+      const existe = await Usuario.query()
+        .where('nombre_usuario', u.nombre_usuario)
+        .orWhere('correo_electronico', u.correo_electronico)
+        .first()
+
+      if (existe) continue
+
+      const hashedPassword = await hash.make(u.contrasena)
+
+      await Usuario.create({
+        id_empresa: Number(u.id_empresa),
+        id_area: Number(u.id_area),
+        nombre: u.nombre,
+        apellido: u.apellido,
+        nombre_usuario: u.nombre_usuario,
+        correo_electronico: u.correo_electronico,
+        cargo: u.cargo,
+        contrasena: hashedPassword
+      })
+
+      created++
+    }
+
+    return { created }
   }
 }
 
