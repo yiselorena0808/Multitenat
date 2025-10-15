@@ -15,3 +15,5 @@ Route.put('/blogs/:id', blog.actualizar).use(authJwt.handle.bind(authJwt))
 
 // Eliminar blog por ID
 Route.delete('/blogs/:id', blog.eliminar).use(authJwt.handle.bind(authJwt))
+
+Route.get('/eventos', blog.listar).use(authJwt.handle.bind(authJwt))
