@@ -7,58 +7,90 @@ const reporteService = new ReporteService()
 export default class ReportesController {
   // Crear reporte
   public async crearReporte({ request, response }: HttpContext) {
-  try {
-    const usuarioAuth = (request as any).user
-    if (!usuarioAuth) {
-      return response.status(401).json({ error: "Usuario no autenticado" })
-    }
+    try {
+      const usuarioAuth = (request as any).user
+      if (!usuarioAuth) {
+        return response.status(401).json({ error: "Usuario no autenticado" })
+      }
 
-    // 🧠 Si el frontend manda id_usuario y nombre_usuario, se usan;
-    // si no, se usa el del token autenticado
-    const id_usuario = request.input("id_usuario") || usuarioAuth.id
-    const id_empresa = request.input("id_empresa") || usuarioAuth.id_empresa
-    const nombre_usuario = request.input("nombre_usuario") || usuarioAuth.nombre
+      // ✅ IDs como números
+      const id_usuario = Number(request.input("id_usuario")) || usuarioAuth.id
+      const id_empresa = Number(request.input("id_empresa")) || usuarioAuth.id_empresa
+      const nombre_usuario = request.input("nombre_usuario") || usuarioAuth.nombre
 
-    const datos: DatosReporte = {
-      cargo: request.input("cargo"),
-      cedula: request.input("cedula"),
-      fecha: request.input("fecha"),
-      lugar: request.input("lugar"),
-      descripcion: request.input("descripcion"),
-      id_usuario,          // 👈 usa el que venga del form o el tuyo
-      id_empresa,          // 👈 usa el que venga del form o el tuyo
-      nombre_usuario,      // 👈 usa el que venga del form o el tuyo
-      estado: request.input("estado"),
-    }
+      // Datos del reporte
+      const datos: DatosReporte = {
+        cargo: request.input("cargo"),
+        cedula: request.input("cedula"),
+        fecha: request.input("fecha"),
+        lugar: request.input("lugar"),
+        descripcion: request.input("descripcion"),
+        estado: request.input("estado") || "Pendiente",
+        id_usuario,
+        id_empresa,
+        nombre_usuario,
+      }
 
-    // 📂 Archivos opcionales
-    const imagenFile = request.file("imagen")
-    const archivoFile = request.file("archivos")
+      console.log("📦 Datos recibidos:", datos)
+      console.log("👤 Usuario autenticado:", usuarioAuth)
 
-    if (imagenFile && imagenFile.tmpPath) {
-      const upload = await cloudinary.uploader.upload(imagenFile.tmpPath, {
-        folder: "reportes",
-        resource_type: "auto",
+      // Archivos opcionales
+      const imagenFile = request.file("imagen", {
+        size: "5mb",
+        extnames: ["jpg", "jpeg", "png"],
       })
-      datos.imagen = upload.secure_url
-    }
 
-    if (archivoFile && archivoFile.tmpPath) {
-      const upload = await cloudinary.uploader.upload(archivoFile.tmpPath, {
-        folder: "reportes",
-        resource_type: "auto",
+      const archivoFile = request.file("archivos", {
+        size: "10mb",
+        extnames: ["pdf", "doc", "docx", "xls", "xlsx"],
       })
-      datos.archivos = upload.secure_url
-    }
 
-    const reporte = await reporteService.crear(id_empresa, datos)
-    return response.json(reporte)
+      if (imagenFile && !imagenFile.isValid) {
+        return response.badRequest({ error: imagenFile.errors })
+      }
 
-  } catch (error: any) {
-    console.error(error)
-    return response.status(500).json({ error: "Error interno", detalle: error.message })
- }  
-}
+      if (archivoFile && !archivoFile.isValid) {
+        return response.badRequest({ error: archivoFile.errors })
+      }
+
+      // Subida a Cloudinary (manejo de errores)
+      if (imagenFile?.tmpPath) {
+        try {
+          const upload = await cloudinary.uploader.upload(imagenFile.tmpPath, {
+            folder: "reportes",
+            resource_type: "image",
+          })
+          datos.imagen = upload.secure_url
+        } catch (e) {
+          console.warn("Error subiendo imagen:", e)
+        }
+      }
+
+      if (archivoFile?.tmpPath) {
+        try {
+          const upload = await cloudinary.uploader.upload(archivoFile.tmpPath, {
+            folder: "reportes",
+            resource_type: "auto",
+          })
+          datos.archivos = upload.secure_url
+        } catch (e) {
+          console.warn("Error subiendo archivo:", e)
+        }
+      }
+
+      // Guardar en DB
+      const reporte = await reporteService.crear(id_empresa, datos)
+      return response.json(reporte)
+
+    } catch (error: any) {
+      console.error("💥 Error en crearReporte:", error)
+      return response.status(500).json({
+        error: "Error interno del servidor",
+        detalle: error.message,
+    })
+   }
+ }
+
   // Listar reportes
   public async listarReportes({ request, response }: HttpContext) {
     try {
