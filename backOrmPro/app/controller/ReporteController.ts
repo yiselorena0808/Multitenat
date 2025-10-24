@@ -216,6 +216,8 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
     if (!sgva) return response.status(401).json({ error: 'Usuario no autenticado' })
 
     const reporteId = Number(params.id)
+    if (isNaN(reporteId)) return response.badRequest({ error: 'ID de reporte inválido' })
+
     const { image } = request.only(['image'])
     if (!image) return response.badRequest({ error: 'Huella no enviada' })
 
@@ -226,6 +228,7 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
       .first()
 
     if (!reporte) return response.status(404).json({ error: 'Reporte no encontrado' })
+    console.log('📌 Reporte encontrado:', reporte.id_reporte)
 
     // Obtener huella SGVA
     const fingerprint = await Fingerprint.query()
@@ -233,24 +236,38 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
       .first()
 
     if (!fingerprint) return response.status(400).json({ error: 'Huella del SGVA no registrada' })
+    if (!fingerprint.template) return response.status(500).json({ error: 'Huella del SGVA corrupta o vacía' })
+    console.log('📌 Fingerprint encontrado para usuario:', sgva.id)
 
-    const sgvaTemplate = fingerprint.template.toString('base64')
+    const sgvaTemplate = (fingerprint.template as Buffer).toString('base64')
+    console.log('📌 Longitud del template SGVA:', sgvaTemplate.length)
 
     // Llamar al microservicio Python
-    const pythonUrl = env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
-    const cmp = await axios.post(`${pythonUrl}/compare`, { t1: image, t2: sgvaTemplate })
+    let score: number
+    try {
+      const pythonUrl = env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
+      const cmp = await axios.post(`${pythonUrl}/compare`, {
+        t1: image,
+        t2: sgvaTemplate
+      })
+      score = cmp.data.score
+      console.log('📌 Score de comparación:', score)
+    } catch (err: any) {
+      console.error('💥 Error en microservicio Python:', err.response?.data || err.message)
+      return response.status(500).json({ error: 'Error comparando huella con microservicio' })
+    }
 
-    const score = cmp.data.score
     const estado = score >= 0.55 ? 'Aceptado' : 'Denegado'
 
     // Guardar estado en DB
     reporte.merge({ estado })
     await reporte.save()
+    console.log(`✅ Estado del reporte actualizado a: ${estado}`)
 
     return response.ok({ estado, score })
   } catch (error: any) {
-    console.error('Error verificarReporteSGVA:', error)
-    return response.status(500).json({ error: 'Error interno del servidor' })
+    console.error('💥 Error verificarReporteSGVA:', error)
+    return response.status(500).json({ error: 'Error interno del servidor', detalle: error.message })
   }
 }
   }
