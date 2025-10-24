@@ -63,7 +63,7 @@
     "@sendgrid/mail": "^8.1.5",
     "@types/pg": "^8.15.4",
     "@vinejs/vine": "^3.0.1",
-    "axios": "^1.12.0",
+    "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
