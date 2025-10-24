@@ -1,5 +1,6 @@
 import type { HttpContext} from '@adonisjs/core/http'
 import EventosService from '../services/EventosService.js'
+import FcmHelper, { FcmData } from '../helpers/FcmHelper.js'
 
 const service = new EventosService()
 
@@ -64,39 +65,65 @@ export default class EventosController {
     return response.json(result)
   }
 
-  async crearNoti({ auth, request, response }: HttpContext) {
- // Si usas middleware('auth'), toma de auth; si no, cae al request.user que tú seteas
+ public async crearNoti({ auth, request, response }: HttpContext) {
+    // 1) Usuario autenticado
     const user = auth?.user ?? (request as any).user
     if (!user) return response.unauthorized({ message: 'Usuario no autenticado' })
 
-    // Campos del body
-    const data: any = request.only(['titulo', 'descripcion', 'fecha_actividad'])
+    // 2) Campos del body
+    const { titulo, descripcion, fecha_actividad } = request.only([
+      'titulo',
+      'descripcion',
+      'fecha_actividad',
+    ])
 
-    // Completa con datos del usuario autenticado (no confíes en el cliente)
-    data.id_usuario = user.id
-    data.nombre_usuario = user.nombre_usuario ?? user.nombre ?? 'Usuario'
-    data.id_empresa = user.id_empresa
-
-    // Si tu columna es Date/DateTime, conviene parsear
-    if (typeof data.fecha_actividad === 'string') {
-      data.fecha_actividad = new Date(data.fecha_actividad) // o DateTime.fromISO(...)
+    // 3) Completar con datos del usuario (¡no confíes en el cliente!)
+    const data: any = {
+      id_usuario: user.id,
+      nombre_usuario: user.nombre_usuario ?? user.nombre ?? 'Usuario',
+      titulo,
+      descripcion,
+      id_empresa: user.id_empresa,
+      fecha_actividad:
+        typeof fecha_actividad === 'string' ? new Date(fecha_actividad) : fecha_actividad,
     }
 
-    // Archivos (multipart/form-data)
+    // 4) Archivos (multipart/form-data)
     const imagen = request.file('imagen')
     const archivo = request.file('archivo')
-
     const imagenPath = imagen?.tmpPath
     const archivoPath = archivo?.tmpPath
 
     try {
+      // 5) Persistir usando tu servicio (Cloudinary incluido)
       const service = new EventosService()
       const publicacion = await service.crear(data, archivoPath, imagenPath)
 
-      // Si tu método crear ya dispara la notificación, perfecto.
-      // Si no, aquí podrías llamar a notifyTenantNewEvent(data.id_empresa, publicacion.id, publicacion.titulo)
+      // 6) Enviar notificación al topic del tenant (multitenant)
+      //    Topic = "<prefijo>_tenant_<id_empresa>", ej. "prod_tenant_42"
+      const prefix = process.env.FCM_TOPIC_PREFIX || 'prod'
+      const topic = `${prefix}_tenant_${publicacion.id_empresa}`
 
-      return response.created(publicacion) // 201
+      // FCM 'data' debe ser string->string
+      const fcmData: FcmData = {
+        eventId: String(publicacion.id),
+        tenantId: String(publicacion.id_empresa),
+      }
+
+      try {
+        await FcmHelper.enviarNotificacion({
+          titulo: `Nuevo evento: ${publicacion.titulo}`,
+          cuerpo: descripcion ?? '',
+          topic,
+          data: fcmData,
+        })
+      } catch (pushErr) {
+        // No tumbes la creación si FCM falla
+        console.error('FCM push error:', pushErr)
+      }
+
+      // 7) Respuesta
+      return response.created({ ok: true, data: publicacion })
     } catch (error: any) {
       console.error('Error en crear el evento:', error)
       return response.status(500).json({ message: error.message ?? 'Error interno' })

@@ -208,7 +208,7 @@ export default class ReportesController {
           return response.ok(reporte)
     }
 
-   public async verificarReporteSGVA({ params, request, response }: HttpContext) {
+public async verificarReporteSGVA({ params, request, response }: HttpContext) {
   try {
     const sgva = (request as any).user
     if (!sgva) return response.status(401).json({ error: 'Usuario no autenticado' })
@@ -221,20 +221,26 @@ export default class ReportesController {
     const reporte = await reporteService.listarId(reporteId, sgva.id_empresa)
     if (!reporte) return response.status(404).json({ error: 'Reporte no encontrado' })
 
-    // Obtener huella del SGVA
-    const fingerprint = sgva.fingerprint // asegúrate de que exista la relación en tu modelo User
+    // Cargar huella del SGVA si no está en memoria
+    if (!sgva.fingerprint) {
+      await sgva.load('fingerprint') // ⚡ asegúrate que el modelo User tenga relación fingerprint
+    }
+    const fingerprint = sgva.fingerprint
     if (!fingerprint) return response.status(400).json({ error: 'Huella del SGVA no registrada' })
 
     const sgvaTemplate = fingerprint.template.toString('base64')
 
     // Llamar a microservicio Python para comparar
     const pythonUrl = Env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
-    const cmp = await axios.post(`${pythonUrl}/compare`, {
-      t1: image,
-      t2: sgvaTemplate
-    })
+    let cmp
+    try {
+      cmp = await axios.post(`${pythonUrl}/compare`, { t1: image, t2: sgvaTemplate })
+    } catch (err: any) {
+      console.error('Error llamando al microservicio Python:', err.message)
+      return response.status(500).json({ error: 'Error comunicando con servicio de huellas' })
+    }
 
-    const score = cmp.data.score
+    const score = cmp.data?.score ?? 0
     const THRESHOLD = 0.55
 
     // Actualizar estado del reporte
@@ -244,7 +250,7 @@ export default class ReportesController {
     return response.ok({ estado, score })
 
   } catch (error: any) {
-    console.error(error)
+    console.error('💥 Error en verificarReporteSGVA:', error)
     return response.status(500).json({ error: error.message })
   }
 }
