@@ -1,5 +1,6 @@
 import UsuarioService from '#services/UsuarioService'
 import type { HttpContext } from '@adonisjs/core/http'
+import Fingerprint from '#models/fingerprint'
 
 const usuarioService = new UsuarioService()
 
@@ -181,4 +182,45 @@ console.log('DATOS ONLY:', datos)
       return response.status(500).json({ error: error.message })
     }
   }
+
+    async registrarSGVA({ request, response }: HttpContext) {
+    try {
+      const { nombre, apellido, correo_electronico, cargo, contrasena, id_empresa, id_area, huella } = request.only([
+        'nombre', 'apellido', 'correo_electronico', 'cargo', 'contrasena', 'id_empresa', 'id_area', 'huella'
+      ])
+
+      if (!huella) {
+        return response.badRequest({ error: 'Debe enviar la huella del usuario' })
+      }
+
+      // Registrar usuario normal
+      const resultado = await usuarioService.register(
+        id_empresa,
+        id_area,
+        nombre,
+        apellido,
+        correo_electronico, // nombre_usuario igual al correo
+        correo_electronico,
+        cargo,
+        contrasena,
+        contrasena
+      )
+
+      const nuevoUsuario = resultado.user
+      if (!nuevoUsuario) return response.status(500).json({ error: 'Error creando usuario SGVA' })
+
+      // Guardar huella
+      await Fingerprint.create({
+        idUsuario: nuevoUsuario.id,
+        template: Buffer.from(huella, 'base64')
+      })
+
+      return response.status(201).json({ mensaje: 'Usuario SGVA creado correctamente', usuario: nuevoUsuario })
+
+    } catch (error: any) {
+      console.error('Error registrarSGVA:', error)
+      return response.status(500).json({ error: error.message })
+ }
+ }
+
 }
