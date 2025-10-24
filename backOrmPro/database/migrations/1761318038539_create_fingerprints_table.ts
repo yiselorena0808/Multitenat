@@ -9,11 +9,11 @@ export default class extends BaseSchema {
 
       // relación 1–1 con users
       table
-        .integer('id_usuario').references('id').inTable('usuarios')
+        .integer('id_usuario')
         .unsigned()
         .notNullable()
         .references('id')
-        .inTable('users')
+        .inTable('usuarios')
         .onDelete('CASCADE')
         .unique()                  // cada user solo una huella
 
