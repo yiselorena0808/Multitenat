@@ -219,7 +219,7 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
     const { image } = request.only(['image'])
     if (!image) return response.badRequest({ error: 'Huella no enviada' })
 
-    // Obtener reporte usando id_reporte
+    // Obtener reporte
     const reporte = await Reporte.query()
       .where('id_reporte', reporteId)
       .andWhere('id_empresa', sgva.id_empresa)
@@ -227,36 +227,30 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
 
     if (!reporte) return response.status(404).json({ error: 'Reporte no encontrado' })
 
-    // Obtener huella del SGVA desde DB
+    // Obtener huella SGVA
     const fingerprint = await Fingerprint.query()
       .where('id_usuario', sgva.id)
       .first()
 
     if (!fingerprint) return response.status(400).json({ error: 'Huella del SGVA no registrada' })
 
-    const sgvaTemplate = (fingerprint.template as Buffer).toString('base64')
+    const sgvaTemplate = fingerprint.template.toString('base64')
 
-    // Llamar a microservicio Python
+    // Llamar al microservicio Python
     const pythonUrl = env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
-    const cmp = await axios.post(`${pythonUrl}/compare`, {
-      t1: image,
-      t2: sgvaTemplate
-    })
+    const cmp = await axios.post(`${pythonUrl}/compare`, { t1: image, t2: sgvaTemplate })
 
     const score = cmp.data.score
-    const THRESHOLD = 0.55
+    const estado = score >= 0.55 ? 'Aceptado' : 'Denegado'
 
-    // Actualizar estado del reporte
-    const estado = score >= THRESHOLD ? 'Aceptado' : 'Denegado'
-    await Reporte.query()
-      .where('id_reporte', reporteId)
-      .update({ estado })
+    // Guardar estado en DB
+    reporte.merge({ estado })
+    await reporte.save()
 
     return response.ok({ estado, score })
-
   } catch (error: any) {
-    console.error(error)
-    return response.status(500).json({ error: error.message })
+    console.error('Error verificarReporteSGVA:', error)
+    return response.status(500).json({ error: 'Error interno del servidor' })
   }
 }
   }
