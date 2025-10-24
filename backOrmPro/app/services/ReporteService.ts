@@ -128,27 +128,37 @@ export default class ReporteService {
     return reporte
    }
 
-   public async verificarHuellaSGVA(reporteId: number, sgvaId: number, huellaCapturada: string) {
-    // Obtener reporte
-    const reporte = await Reporte.findOrFail(reporteId)
+ public async verificarHuellaSGVA(
+  reporteId: number,
+  sgvaId: number,
+  huellaCapturada: string
+) {
+  // Obtener reporte
+  const reporte = await Reporte.query()
+    .where('id_reporte', reporteId)
+    .firstOrFail()
 
-    // Obtener huella del SGVA
-    const fingerprint = await Fingerprint.query().where('user_id', sgvaId).firstOrFail()
-    const sgvaTemplate = (fingerprint.template as Buffer).toString('base64')
+  // Obtener huella del SGVA
+  const fingerprint = await Fingerprint.query()
+    .where('id_usuario', sgvaId)
+    .firstOrFail()
 
-    // Llamar a Python
-    const pythonUrl = Env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
-    const cmp = await axios.post(`${pythonUrl}/compare`, {
-      t1: huellaCapturada,
-      t2: sgvaTemplate
-    })
+  const sgvaTemplate = (fingerprint.template as Buffer).toString('base64')
 
-    const score = cmp.data.score
-    const estado = score >= 0.55 ? 'Aceptado' : 'Denegado'
+  // Llamar a microservicio Python
+  const pythonUrl = Env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
+  const cmp = await axios.post(`${pythonUrl}/compare`, {
+    t1: huellaCapturada,
+    t2: sgvaTemplate
+  })
 
-    // Actualizar estado del reporte
-    await Reporte.query().where('id_reporte', reporteId).update({ estado })
+  const score = cmp.data.score
+  const estado = score >= 0.55 ? 'Aceptado' : 'Denegado'
 
-    return { estado, score,reporte }
- }
+  // Actualizar estado del reporte y mantener instancia
+  reporte.merge({ estado })
+  await reporte.save()
+
+  return { estado, score, reporte }
+}
 }

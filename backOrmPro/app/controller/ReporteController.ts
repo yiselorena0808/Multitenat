@@ -2,7 +2,9 @@ import type { HttpContext } from "@adonisjs/core/http"
 import ReporteService, { DatosReporte } from "#services/ReporteService"
 import cloudinary from "#config/cloudinary"
 import axios from 'axios'
-import Env from '#start/env'
+import env from '#start/env'
+import Reporte from "#models/reporte"
+import Fingerprint from "#models/fingerprint"
 
 const reporteService = new ReporteService()
 
@@ -217,40 +219,43 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
     const { image } = request.only(['image'])
     if (!image) return response.badRequest({ error: 'Huella no enviada' })
 
-    // Obtener reporte
-    const reporte = await reporteService.listarId(reporteId, sgva.id_empresa)
+    // Obtener reporte usando id_reporte
+    const reporte = await Reporte.query()
+      .where('id_reporte', reporteId)
+      .andWhere('id_empresa', sgva.id_empresa)
+      .first()
+
     if (!reporte) return response.status(404).json({ error: 'Reporte no encontrado' })
 
-    // Cargar huella del SGVA si no está en memoria
-    if (!sgva.fingerprint) {
-      await sgva.load('fingerprint') // ⚡ asegúrate que el modelo User tenga relación fingerprint
-    }
-    const fingerprint = sgva.fingerprint
+    // Obtener huella del SGVA desde DB
+    const fingerprint = await Fingerprint.query()
+      .where('id_usuario', sgva.id)
+      .first()
+
     if (!fingerprint) return response.status(400).json({ error: 'Huella del SGVA no registrada' })
 
-    const sgvaTemplate = fingerprint.template.toString('base64')
+    const sgvaTemplate = (fingerprint.template as Buffer).toString('base64')
 
-    // Llamar a microservicio Python para comparar
-    const pythonUrl = Env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
-    let cmp
-    try {
-      cmp = await axios.post(`${pythonUrl}/compare`, { t1: image, t2: sgvaTemplate })
-    } catch (err: any) {
-      console.error('Error llamando al microservicio Python:', err.message)
-      return response.status(500).json({ error: 'Error comunicando con servicio de huellas' })
-    }
+    // Llamar a microservicio Python
+    const pythonUrl = env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
+    const cmp = await axios.post(`${pythonUrl}/compare`, {
+      t1: image,
+      t2: sgvaTemplate
+    })
 
-    const score = cmp.data?.score ?? 0
+    const score = cmp.data.score
     const THRESHOLD = 0.55
 
     // Actualizar estado del reporte
     const estado = score >= THRESHOLD ? 'Aceptado' : 'Denegado'
-    await reporteService.actualizar(reporteId, sgva.id_empresa, { estado })
+    await Reporte.query()
+      .where('id_reporte', reporteId)
+      .update({ estado })
 
     return response.ok({ estado, score })
 
   } catch (error: any) {
-    console.error('💥 Error en verificarReporteSGVA:', error)
+    console.error(error)
     return response.status(500).json({ error: error.message })
   }
 }
