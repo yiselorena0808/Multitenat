@@ -211,7 +211,7 @@ console.log('DATOS ONLY:', datos)
 
       // Guardar huella
       await Fingerprint.create({
-        idUsuario: nuevoUsuario.id,
+        id_usuario: nuevoUsuario.id,
         template: Buffer.from(huella, 'base64')
       })
 
