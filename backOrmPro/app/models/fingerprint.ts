@@ -8,7 +8,7 @@ export default class Fingerprint extends BaseModel {
   declare id: number
 
   @column({ columnName: 'id_usuario' })
-  declare idUsuario: number
+  declare id_usuario: number
 
   @column()
   declare template: Buffer 
