@@ -4,7 +4,7 @@ const DebugFcmController = () => import('../../app/controller/FCMController.js')
 
 router.get('/debug/fcm/health', [DebugFcmController, 'health'])
 router.post('/debug/fcm/send', [DebugFcmController, 'sendToTenant'])
-router.post('/debug/fcm/send', async ({ request, response }) => {
+router.post('/debug/fcm/sends', async ({ request, response }) => {
   const { tenantId } = request.only(['tenantId'])
   const prefix = process.env.FCM_TOPIC_PREFIX || 'prod'
   const topic = `${prefix}_tenant_${Number(tenantId)}`
