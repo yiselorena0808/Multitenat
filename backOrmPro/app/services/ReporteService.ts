@@ -51,7 +51,7 @@ export default class ReporteService {
   // Listar reporte por ID y empresa
   async listarId(id: number, idEmpresa: number) {
     return Reporte.query()
-      .where("id", id)
+      .where("id_reporte", id)
       .andWhere("id_empresa", idEmpresa)
       .firstOrFail()
   }
@@ -59,7 +59,7 @@ export default class ReporteService {
   // Actualizar reporte
   async actualizar(id: number, idEmpresa: number, datos: Partial<DatosReporte>) {
     const reporte = await Reporte.query()
-      .where("id", id)
+      .where("id_reporte", id)
       .andWhere("id_empresa", idEmpresa)
       .firstOrFail()
 
@@ -71,7 +71,7 @@ export default class ReporteService {
   // Eliminar reporte
   async eliminar(id: number, idEmpresa: number) {
     const reporte = await Reporte.query()
-      .where("id", id)
+      .where("id_reporte", id)
       .andWhere("id_empresa", idEmpresa)
       .firstOrFail()
 
@@ -122,7 +122,7 @@ export default class ReporteService {
   async obtenerUsuario(id:number, id_user: number, id_empresa: number) {
     const reporte = await Reporte.query()
     .apply((scopes) => scopes.onlyu(id_user, id_empresa))
-    .where('id', id)
+    .where('id_reporte', id)
     .first()
 
     return reporte
@@ -147,7 +147,7 @@ export default class ReporteService {
     const estado = score >= 0.55 ? 'Aceptado' : 'Denegado'
 
     // Actualizar estado del reporte
-    await Reporte.query().where('id', reporteId).update({ estado })
+    await Reporte.query().where('id_reporte', reporteId).update({ estado })
 
     return { estado, score,reporte }
  }
