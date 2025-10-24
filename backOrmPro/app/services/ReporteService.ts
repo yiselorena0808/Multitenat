@@ -1,4 +1,7 @@
 import Reporte from "#models/reporte"
+import axios from 'axios'
+import Env from '#start/env'
+import Fingerprint from "#models/fingerprint"
 
 export interface DatosReporte {
   id_usuario: number
@@ -124,4 +127,28 @@ export default class ReporteService {
 
     return reporte
    }
+
+   public async verificarHuellaSGVA(reporteId: number, sgvaId: number, huellaCapturada: string) {
+    // Obtener reporte
+    const reporte = await Reporte.findOrFail(reporteId)
+
+    // Obtener huella del SGVA
+    const fingerprint = await Fingerprint.query().where('user_id', sgvaId).firstOrFail()
+    const sgvaTemplate = (fingerprint.template as Buffer).toString('base64')
+
+    // Llamar a Python
+    const pythonUrl = Env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
+    const cmp = await axios.post(`${pythonUrl}/compare`, {
+      t1: huellaCapturada,
+      t2: sgvaTemplate
+    })
+
+    const score = cmp.data.score
+    const estado = score >= 0.55 ? 'Aceptado' : 'Denegado'
+
+    // Actualizar estado del reporte
+    await Reporte.query().where('id', reporteId).update({ estado })
+
+    return { estado, score,reporte }
+ }
 }

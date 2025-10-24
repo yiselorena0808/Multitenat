@@ -1,6 +1,8 @@
 import type { HttpContext } from "@adonisjs/core/http"
 import ReporteService, { DatosReporte } from "#services/ReporteService"
 import cloudinary from "#config/cloudinary"
+import axios from 'axios'
+import Env from '#start/env'
 
 const reporteService = new ReporteService()
 
@@ -205,5 +207,46 @@ export default class ReportesController {
         if(!reporte) return response.status(404).json({ error: 'Reporte no encontrado'})
           return response.ok(reporte)
     }
+
+   public async verificarReporteSGVA({ params, request, response }: HttpContext) {
+  try {
+    const sgva = (request as any).user
+    if (!sgva) return response.status(401).json({ error: 'Usuario no autenticado' })
+
+    const reporteId = Number(params.id)
+    const { image } = request.only(['image'])
+    if (!image) return response.badRequest({ error: 'Huella no enviada' })
+
+    // Obtener reporte
+    const reporte = await reporteService.listarId(reporteId, sgva.id_empresa)
+    if (!reporte) return response.status(404).json({ error: 'Reporte no encontrado' })
+
+    // Obtener huella del SGVA
+    const fingerprint = sgva.fingerprint // asegúrate de que exista la relación en tu modelo User
+    if (!fingerprint) return response.status(400).json({ error: 'Huella del SGVA no registrada' })
+
+    const sgvaTemplate = fingerprint.template.toString('base64')
+
+    // Llamar a microservicio Python para comparar
+    const pythonUrl = Env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
+    const cmp = await axios.post(`${pythonUrl}/compare`, {
+      t1: image,
+      t2: sgvaTemplate
+    })
+
+    const score = cmp.data.score
+    const THRESHOLD = 0.55
+
+    // Actualizar estado del reporte
+    const estado = score >= THRESHOLD ? 'Aceptado' : 'Denegado'
+    await reporteService.actualizar(reporteId, sgva.id_empresa, { estado })
+
+    return response.ok({ estado, score })
+
+  } catch (error: any) {
+    console.error(error)
+    return response.status(500).json({ error: error.message })
+  }
+}
   }
 

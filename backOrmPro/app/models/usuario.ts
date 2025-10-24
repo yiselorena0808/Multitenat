@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column, hasMany, hasOne } from '@adonisjs/lucid/orm'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany, HasOne } from '@adonisjs/lucid/types/relations'
 import Empresa from './empresa.js'
 import Area from './area.js'
 import Reporte from './reporte.js'
@@ -9,6 +9,7 @@ import Eventos from './eventos.js'
 import GestionEpp from './gestion_epp.js'
 import ListaChequeo from './lista_chequeo.js'
 import ActividadLudica from './actividad_ludica.js'
+import Fingerprint from './fingerprint.js'
 
 
 
@@ -69,7 +70,8 @@ export default class Usuario extends BaseModel {
   @hasMany(() => ActividadLudica)
   declare actividadesLudicas: HasMany<typeof ActividadLudica>
 
-  
+  @hasOne(() => Fingerprint)
+  declare fingerprint: HasOne<typeof Fingerprint>
 
    static accessTokens = DbAccessTokensProvider.forModel(Usuario)
 
