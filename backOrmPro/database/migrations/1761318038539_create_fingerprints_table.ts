@@ -9,7 +9,7 @@ export default class extends BaseSchema {
 
       // relación 1–1 con users
       table
-        .integer('user_id')
+        .integer('id_usuario').references('id').inTable('usuarios')
         .unsigned()
         .notNullable()
         .references('id')
