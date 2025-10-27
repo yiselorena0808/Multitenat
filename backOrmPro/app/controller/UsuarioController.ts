@@ -223,4 +223,16 @@ console.log('DATOS ONLY:', datos)
  }
  }
 
+ public async huellaUsuario({ params, response }: HttpContext) {
+    const fingerprint = await Fingerprint.query()
+      .where('id_usuario', params.id_usuario)
+      .first()
+
+    if (!fingerprint) {
+      return response.status(404).json({ error: 'Huella no encontrada' })
+    }
+
+    return response.json({ huella: fingerprint.template.toString('base64') })
+  }
+
 }
