@@ -245,7 +245,7 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
     // Llamar al microservicio Python
     let score: number
     try {
-      const pythonUrl = env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
+      const pythonUrl = 'http://127.0.0.1:5000'
       const cmp = await axios.post(`${pythonUrl}/compare`, {
         t1: image,
         t2: sgvaTemplate
@@ -271,4 +271,4 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
   }
 }
   }
-
+ 
