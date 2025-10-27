@@ -2,7 +2,7 @@ import type { HttpContext } from "@adonisjs/core/http"
 import ReporteService, { DatosReporte } from "#services/ReporteService"
 import cloudinary from "#config/cloudinary"
 import axios from 'axios'
-import env from '#start/env'
+
 import Reporte from "#models/reporte"
 import Fingerprint from "#models/fingerprint"
 
