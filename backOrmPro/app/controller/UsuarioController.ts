@@ -1,6 +1,7 @@
 import UsuarioService from '#services/UsuarioService'
 import type { HttpContext } from '@adonisjs/core/http'
 import Fingerprint from '#models/fingerprint'
+import { normalizeHuellaDataUrl } from '../utils/huella_topic.js'
 
 const usuarioService = new UsuarioService()
 
@@ -193,6 +194,11 @@ console.log('DATOS ONLY:', datos)
         return response.badRequest({ error: 'Debe enviar la huella del usuario' })
       }
 
+      const huellaNormalizada = normalizeHuellaDataUrl(huella)
+      if (!huellaNormalizada) {
+        return response.badRequest({ error: 'Error al normalizar la huella' })
+      }
+
       // Registrar usuario normal
       const resultado = await usuarioService.register(
         id_empresa,
@@ -209,17 +215,23 @@ console.log('DATOS ONLY:', datos)
       const nuevoUsuario = resultado.user
       if (!nuevoUsuario) return response.status(500).json({ error: 'Error creando usuario SGVA' })
 
+      const templateBuffer = Buffer.from(
+        huellaNormalizada.replace(/^data:.*;base64,/, ''),
+        'base64'
+      )
+
+
       // Guardar huella
       await Fingerprint.create({
         id_usuario: nuevoUsuario.id,
-        template: Buffer.from(huella, 'base64')
+        template: templateBuffer,
       })
 
       return response.status(201).json({ mensaje: 'Usuario SGVA creado correctamente', usuario: nuevoUsuario })
 
     } catch (error: any) {
       console.error('Error registrarSGVA:', error)
-      return response.status(500).json({ error: error.message })
+      return response.status(500).json({ error: error.message })
  }
  }
 
