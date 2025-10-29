@@ -235,16 +235,25 @@ console.log('DATOS ONLY:', datos)
  }
  }
 
- public async huellaUsuario({ params, response }: HttpContext) {
-    const fingerprint = await Fingerprint.query()
-      .where('id_usuario', params.id_usuario)
-      .first()
+  public async huellaUsuario({ params, response }: HttpContext) {
+    try {
+      const fingerprint = await Fingerprint.query()
+        .where('id_usuario', params.id_usuario)
+        .first()
 
-    if (!fingerprint) {
-      return response.status(404).json({ error: 'Huella no encontrada' })
+      if (!fingerprint) {
+        return response.status(404).json({ error: 'Huella no encontrada' })
+      }
+
+      // ✅ Convertir bytes a Base64 con formato correcto
+      const huellaBase64 = `data:image/jpeg;base64,${fingerprint.template.toString('base64')}`
+
+      return response.json({ huella: huellaBase64 })
+    } catch (error) {
+      console.error('Error obteniendo huella:', error)
+      return response.status(500).json({ error: 'Error obteniendo huella' })
     }
-
-    return response.json({ huella: fingerprint.template.toString('base64') })
   }
+
 
 }
