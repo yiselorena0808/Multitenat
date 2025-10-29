@@ -2,10 +2,12 @@ import type { HttpContext } from "@adonisjs/core/http"
 import ReporteService, { DatosReporte } from "#services/ReporteService"
 import cloudinary from "#config/cloudinary"
 import axios from 'axios'
+import env from '#start/env'
 
 import Reporte from "#models/reporte"
 import Fingerprint from "#models/fingerprint"
 
+const stripDataUrl = (s: string) => s.replace(/^data:[^,]+,/, '')
 const reporteService = new ReporteService()
 
 export default class ReportesController {
@@ -218,8 +220,7 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
     const reporteId = Number(params.id)
     if (isNaN(reporteId)) return response.badRequest({ error: 'ID de reporte inválido' })
 
-    const { image } = request.only(['image'])
-    if (!image) return response.badRequest({ error: 'Huella no enviada' })
+    
 
     // Obtener reporte
     const reporte = await Reporte.query()
@@ -230,45 +231,54 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
     if (!reporte) return response.status(404).json({ error: 'Reporte no encontrado' })
     console.log('📌 Reporte encontrado:', reporte.id_reporte)
 
-    // Obtener huella SGVA
-    const fingerprint = await Fingerprint.query()
-      .where('id_usuario', sgva.id)
-      .first()
+     const { image } = request.only(['image']) // puede venir como dataURL o base64 puro
+     if (!image) return response.badRequest({ error: 'Huella no enviada' })
+      const imageB64 = stripDataUrl(image)
 
-    if (!fingerprint) return response.status(400).json({ error: 'Huella del SGVA no registrada' })
-    if (!fingerprint.template) return response.status(500).json({ error: 'Huella del SGVA corrupta o vacía' })
-    console.log('📌 Fingerprint encontrado para usuario:', sgva.id)
+      // 2) Template SGVA desde BD (¡debe ser del MISMO motor!)
+      const fingerprint = await Fingerprint
+        .query()
+        .where('id_usuario', sgva.id)
+        .first()
+      if (!fingerprint?.template) {
+        return response.badRequest({ error: 'Huella del SGVA no registrada/corrupta' })
+      }
+      const sgvaTemplateB64 =
+        Buffer.isBuffer(fingerprint.template)
+          ? fingerprint.template.toString('base64')
+          : String(fingerprint.template)
 
-    const sgvaTemplate = (fingerprint.template as Buffer).toString('base64')
-    console.log('📌 Longitud del template SGVA:', sgvaTemplate.length)
+      // 3) Microservicio
+      const baseURL = env.get('PYTHON_SERVICE_URL') // ej. http://localhost:8000
+      const api = axios.create({ baseURL, timeout: 20000 })
 
-    // Llamar al microservicio Python
-    let score: number
-    try {
-      const pythonUrl = 'http://127.0.0.1:5000'
-      const cmp = await axios.post(`${pythonUrl}/compare`, {
-        t1: image,
-        t2: sgvaTemplate
+      // 3a) Extraer template de la imagen
+      const { data: ext } = await api.post('/templates/from-base64', {
+        image_b64: imageB64,
       })
-      score = cmp.data.score
-      console.log('📌 Score de comparación:', score)
+      const probeTemplateB64 = ext.template_b64 // NBIS .xyt en base64
+
+      // 3b) Comparar template vs template (umbral calibrable)
+      const form = new URLSearchParams()
+      form.append('template_a_b64', probeTemplateB64)
+      form.append('template_b_b64', sgvaTemplateB64)
+      form.append('threshold', '60')
+
+      const { data: cmp } = await api.post('/match/templates', form, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+
+      const { score, match, threshold } = cmp
+      const estado = match ? 'Aceptado' : 'Denegado'
+
+      // 4) Persistir y responder
+      reporte.merge({ estado })
+      await reporte.save()
+      return response.ok({ estado, score, threshold })
     } catch (err: any) {
-      console.error('💥 Error en microservicio Python:', err.response?.data || err.message)
+      console.error('💥 Error comparar huellas:', err.response?.data || err.message)
       return response.status(500).json({ error: 'Error comparando huella con microservicio' })
     }
-
-    const estado = score >= 0.55 ? 'Aceptado' : 'Denegado'
-
-    // Guardar estado en DB
-    reporte.merge({ estado })
-    await reporte.save()
-    console.log(`✅ Estado del reporte actualizado a: ${estado}`)
-
-    return response.ok({ estado, score })
-  } catch (error: any) {
-    console.error('💥 Error verificarReporteSGVA:', error)
-    return response.status(500).json({ error: 'Error interno del servidor', detalle: error.message })
-  }
 }
   }
  
