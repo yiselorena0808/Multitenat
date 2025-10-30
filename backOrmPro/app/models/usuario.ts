@@ -10,7 +10,7 @@ import GestionEpp from './gestion_epp.js'
 import ListaChequeo from './lista_chequeo.js'
 import ActividadLudica from './actividad_ludica.js'
 import Fingerprint from './fingerprint.js'
-
+import Face from './face.js'
 
 
 
@@ -75,7 +75,8 @@ export default class Usuario extends BaseModel {
 
    static accessTokens = DbAccessTokensProvider.forModel(Usuario)
 
-
+  @hasOne(() => Face)
+  declare face: HasOne<typeof Face>
 
 
   

@@ -1,6 +1,3 @@
-// app/Services/faceUtils.ts
-// Use require with 'any' to avoid missing type declarations for 'face-api.js'
-/* eslint-disable @typescript-eslint/no-var-requires */
 const faceapi: any = require('face-api.js')
 const { Canvas, Image, ImageData }: any = require('canvas')
 import path from 'node:path'
