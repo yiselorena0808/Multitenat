@@ -1,6 +1,7 @@
-const faceapi: any = require('face-api.js')
+
 const { Canvas, Image, ImageData }: any = require('canvas')
 import path from 'node:path'
+import * as faceapi from '@vladmandic/face-api'
 
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData })
 
