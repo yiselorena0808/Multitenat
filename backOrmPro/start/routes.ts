@@ -25,3 +25,5 @@ import './routes/DashboardRoutes.js'
 import './routes/ProductosRoutes.js'
 
 import './routes/PruebasRoutes.js'
+
+import './routes/FaceRoutes.js'
