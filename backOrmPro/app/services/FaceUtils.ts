@@ -1,15 +1,22 @@
 
 const { Canvas, Image, ImageData }: any = require('canvas')
-import path from 'node:path'
-import * as faceapi from '@vladmandic/face-api'
+import * as faceapi from '@vladmandic/face-api/dist/face-api.esm.js'
+
+
+import * as tf from '@tensorflow/tfjs-core'
+import '@tensorflow/tfjs-backend-cpu'
+import '@tensorflow/tfjs-converter'
 
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData })
 
-export async function loadModels(modelsDir?: string): Promise<void> {
-  const dir = modelsDir ?? path.join(process.cwd(), 'models')
-  await faceapi.nets.ssdMobilenetv1.loadFromDisk(dir)
-  await faceapi.nets.faceLandmark68Net.loadFromDisk(dir)
-  await faceapi.nets.faceRecognitionNet.loadFromDisk(dir)
+export async function loadModels(modelsDir = './models') {
+  await tf.setBackend('cpu')        // fuerza backend JS/CPU
+  await tf.ready()
+
+  await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsDir)
+  await faceapi.nets.faceLandmark68Net.loadFromDisk(modelsDir)
+  await faceapi.nets.faceRecognitionNet.loadFromDisk(modelsDir)
+  console.log('[face] backend=tfjs-cpu, modelos cargados de', modelsDir)
 }
 
 export async function computeDescriptor(buffer: Buffer): Promise<number[]> {
