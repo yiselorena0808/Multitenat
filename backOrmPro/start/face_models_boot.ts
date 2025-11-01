@@ -1,8 +1,5 @@
 
-import * as faceapi from '@vladmandic/face-api/dist/face-api.esm.js'
-import { Canvas, Image, ImageData} from 'skia-canvas'
 
-(faceapi as any).env.monkeyPatch({Canvas, Image, ImageData})
 
 export let FACE_READY = false
 export let FACE_ERROR: string | null = null

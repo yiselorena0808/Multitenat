@@ -8,6 +8,7 @@
 | command to run this file and monitor file changes
 |
 */
+import '#start/polyfills'
 
 import 'reflect-metadata'
 import { Ignitor, prettyPrintError } from '@adonisjs/core'
@@ -33,7 +34,6 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
   .tap((app) => {
     app.booting(async () => {
       await import('#start/env')
-      await import('#start/polyfills')  
       const mod = await import('#start/face_models_boot')
       await mod.default
     })

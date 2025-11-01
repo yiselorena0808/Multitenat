@@ -1,5 +1,3 @@
-// start/polyfills.ts
-// Polyfill robusto para TextEncoder/TextDecoder en Node 22
 
 import { TextEncoder as NodeTextEncoder, TextDecoder as NodeTextDecoder } from 'node:util'
 
