@@ -1,6 +1,7 @@
 // start/routes.ts
 import router from '@adonisjs/core/services/router'
 const DebugFcmController = () => import('../../app/controller/FCMController.js')
+import { FACE_READY, FACE_BACKEND, FACE_ERROR } from '#start/face_models_boot'
 
 router.get('/debug/fcm/health', [DebugFcmController, 'health'])
 router.post('/debug/fcm/send', [DebugFcmController, 'sendToTenant'])
@@ -25,3 +26,10 @@ router.post('/debug/fcm/sends', async ({ request, response }) => {
   }
 })
 
+router.get('/face/status', async () => {
+  return {
+    ready: FACE_READY,     // true cuando los modelos cargaron bien
+    backend: FACE_BACKEND, // ej: 'tfjs-js'
+    error: FACE_ERROR,     // mensaje si falló el boot
+  }
+})
