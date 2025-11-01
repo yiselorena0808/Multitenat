@@ -13,7 +13,7 @@ const ready = (async () => {
     try {
 await import ('@tensorflow/tfjs')
 const { loadModels } = await import ('../app/services/FaceUtils.js')
-await loadModels(process.env.MODELS_DIR)
+await loadModels(process.env.MODELS_DIR || './models')
 FACE_READY=true
  FACE_BACKEND = 'tfjs-js'  
  console.log('[face] Modelos cargados - tfjs (JS) + skia-canvas')
