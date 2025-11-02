@@ -1,6 +1,6 @@
 import type { HttpContext } from "@adonisjs/core/http";
 import Face from "../models/face.js";
-import { computeDescriptor, bestMatch } from "#services/FaceUtils";
+import { computeEmbedding, bestMatch } from "#services/FaceOnnx";
 import fs from 'fs/promises';
 
 export default class FaceController {
@@ -28,7 +28,7 @@ export default class FaceController {
     }
 
    try {
-       const descriptor = await computeDescriptor(buffer)
+       const descriptor = await computeEmbedding(buffer)
 
        const existing = await Face.query().where('id_usuario', user.id).first()
       if (existing) {
@@ -66,17 +66,17 @@ export default class FaceController {
     }
 
     try {
-        const query = await computeDescriptor(buffer)
+        const query = await computeEmbedding(buffer)
         const rows = await Face.all()
         const labeled = rows.map((r) => ({
             label: r.id_usuario,
             descriptor: r.descriptor,
         }))
 
-        const {label, distance} = bestMatch(query, labeled, 0.6)
-        if (label === 'unknown') return {match: null, distance}
+        const {label, score} = bestMatch(query, labeled, 0.6)
+        if (label === 'unknown') return {match: null, score}
 
-        return { match: {id_usuario: Number(label)}, distance }
+        return { match: {id_usuario: Number(label)}, score }
     } catch (e:any) {
         return response.badRequest({message: e?.message ?? 'Error al procesar la imagen'})
     }
@@ -102,14 +102,14 @@ export default class FaceController {
     else return response.badRequest({ message: 'No se pudo procesar la imagen' });
 
     try {
-        const query = await computeDescriptor(buffer)
-        const {label, distance} = bestMatch(
+        const query = await computeEmbedding(buffer)
+        const {label, score} = bestMatch(
             query,
             [{ label: user.id, descriptor: faceRow.descriptor }],
             0.6
         )
-        if (label === 'unknown') return { match: false, distance }
-        return { match: true, distance }
+        if (label === 'unknown') return { match: false, score }
+        return { match: true, score }
     } catch (e:any) {
         return response.badRequest({message: e?.message ?? 'Error al procesar la imagen'})      
     }

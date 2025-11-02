@@ -67,7 +67,6 @@
     "@tensorflow/tfjs-core": "4.10.0",
     "@types/pg": "^8.15.4",
     "@vinejs/vine": "^3.0.1",
-    "@vladmandic/face-api": "^1.7.15",
     "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
@@ -76,10 +75,11 @@
     "firebase-admin": "^13.5.0",
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.6.1",
+    "onnxruntime-node": "^1.23.0",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
-    "sib-api-v3-sdk": "^8.5.0",
-    "skia-canvas": "^3.0.8"
+    "sharp": "^0.34.4",
+    "sib-api-v3-sdk": "^8.5.0"
   },
   "hotHook": {
     "boundaries": [
