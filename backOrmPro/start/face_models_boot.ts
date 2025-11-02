@@ -35,6 +35,7 @@ async function ensureOnnx(filePath: string, urls: string[], minBytes = 1_000_000
 }
 
 
+
 export let FACE_READY = false
 export let FACE_ERROR: string | null = null
 
@@ -48,12 +49,16 @@ const ready = (async () => {
 
     const modelsDir = process.env.MODELS_DIR || './onnx_models'
     const recPath = path.resolve(modelsDir, 'rec.onnx')
-    await ensureOnnx(recPath, [
-      // RAW oficial
-      'https://raw.githubusercontent.com/openvinotoolkit/open_model_zoo/master/models/public/sface_2021dec/sface_2021dec.onnx',
-      // espejo alterno (ghproxy)
-      'https://mirror.ghproxy.com/https://raw.githubusercontent.com/openvinotoolkit/open_model_zoo/master/models/public/sface_2021dec/sface_2021dec.onnx',
-    ], 1_000_000)
+
+    const urls:string[] = []
+    if (process.env.REC_ONNX_URL) urls.push(process.env.REC_ONNX_URL)
+
+    urls.push(
+  'https://raw.githubusercontent.com/openvinotoolkit/open_model_zoo/master/models/public/sface_2021dec/sface_2021dec.onnx',
+  'https://mirror.ghproxy.com/https://raw.githubusercontent.com/openvinotoolkit/open_model_zoo/master/models/public/sface_2021dec/sface_2021dec.onnx'
+)
+
+await ensureOnnx(recPath, urls, 1_000_000)  
 
     const { loadOnnx } = await import('#services/FaceOnnx')
     await loadOnnx(modelsDir)
