@@ -12,25 +12,23 @@ let REC_SIZE_H = 128
 let REC_SIZE_W = 128
 
 export async function loadOnnx(modelsDir = './onnx_models') {
-  type TensorMetaLike = { dimensions?: ReadonlyArray<number | undefined> }
-  const recPath = path.join(modelsDir, 'rec.onnx')
+   const recPath = path.join(modelsDir, 'rec.onnx')
   recSession = await ort.InferenceSession.create(recPath, { executionProviders: ['cpu'] })
 
-  // Detectar layout y tamaño del input
-  const inName = recSession.inputNames[0] as string
-  const metaMap = recSession.inputMetadata as unknown as Record<string, TensorMetaLike>
-  const meta = metaMap[inName]!
-  const dims = (meta.dimensions ?? []) as ReadonlyArray<number | undefined> // ej: [1,3,128,128] o [1,128,128,3]
+  const { inName, meta } = pickInputMeta(recSession)
+  const dims = meta.dimensions as ReadonlyArray<number | undefined>
 
-  REC_LAYOUT = dims[1] === 3 ? 'NCHW' : 'NHWC'
-  // Si vienen dinámicos (-1), cae a 128
-  if (REC_LAYOUT === 'NCHW') {
-    REC_SIZE_H = Number.isFinite(Number(dims[2])) ? Number(dims[2]) : 128
-    REC_SIZE_W = Number.isFinite(Number(dims[3])) ? Number(dims[3]) : 128
-  } else {
-    REC_SIZE_H = Number.isFinite(Number(dims[1])) ? Number(dims[1]) : 128
-    REC_SIZE_W = Number.isFinite(Number(dims[2])) ? Number(dims[2]) : 128
-  }
+  const isNCHW = dims[1] === 3 || (dims[1] == null && dims[3] !== 3)
+  const Hexp = isNCHW ? dims[2] : dims[1]
+  const Wexp = isNCHW ? dims[3] : dims[2]
+  const isFiniteNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
+
+  REC_LAYOUT = isNCHW ? 'NCHW' : 'NHWC'
+  REC_SIZE_H = isFiniteNum(Hexp) ? Hexp : 128
+  REC_SIZE_W = isFiniteNum(Wexp) ? Wexp : 128
+
+  console.log('[FaceOnnx] Input name:', inName)
+  console.log('[FaceOnnx] Layout:', REC_LAYOUT, 'Dims:', dims, 'Using size:', REC_SIZE_H, 'x', REC_SIZE_W)
 
   // (Opcional) detector
   const detPath = path.join(modelsDir, 'det.onnx')
@@ -118,4 +116,32 @@ export function bestMatch(
   }
   if (best.score < threshold) return { label: 'unknown', score: best.score }
   return best
+}
+
+function pickInputMeta(session: ort.InferenceSession) {
+  const names = session.inputNames as string[]
+   type TensorMetaLike = { dimensions?: ReadonlyArray<number | undefined> }
+  const metaMap = session.inputMetadata as unknown as Record<string, TensorMetaLike>
+
+  // intenta por nombre explícito
+  let inName = names?.[0]
+  let meta = inName ? metaMap[inName] : undefined
+
+  // fallback: toma el primer entry del metadata si no hubo match por nombre
+  if (!meta) {
+    const entries = Object.entries(metaMap)
+    if (entries.length === 0) throw new Error('Modelo sin inputMetadata')
+    const [k, v] = entries[0]
+    inName = k
+    meta = v
+  }
+
+  if (!meta?.dimensions) {
+    // logea para depurar rápido
+    console.error('[ONNX] inputNames:', names)
+    console.error('[ONNX] meta keys:', Object.keys(metaMap))
+    throw new Error('No se pudieron leer las dimensiones del input del modelo')
+  }
+
+  return { inName: inName!, meta: meta! }
 }
