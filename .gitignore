@@ -1,0 +1,5 @@
+
+# ignore ONNX models
+**/*.onnx
+backOrmPro/onnx_models/
+onnx_models/
