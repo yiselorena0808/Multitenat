@@ -1,13 +1,24 @@
 import * as ort from 'onnxruntime-node'
 import sharp from 'sharp'
+import path from 'node:path'
 
-let recSession: ort.InferenceSession
+export let recSession: ort.InferenceSession
+export let det: ort.InferenceSession | null = null
 
 export async function loadOnnx(modelsDir = './onnx_models') {
-    recSession = await ort.InferenceSession.create(`${modelsDir}/rec.onnx`, {
+    const recPath = path.join(modelsDir, 'rec.onnx')
+    recSession = await ort.InferenceSession.create(recPath, {
         executionProviders: ['cpu'],
 
     })
+
+    const detPath = path.join(modelsDir, 'det.onnx')
+    try {
+        det = await ort.InferenceSession.create(detPath, { executionProviders: ['cpu']})
+    } catch {
+        det = null
+    }
+
     console.log('[FaceOnnx] Modelo ONNX cargado')
 }
 

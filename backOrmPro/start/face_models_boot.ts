@@ -1,43 +1,32 @@
 import path from 'node:path'
 import { existsSync, mkdirSync, statSync } from 'node:fs'
-import { writeFile } from 'node:fs/promises'
 import { createWriteStream } from 'node:fs'
-import {pipeline } from 'node:stream/promises'
+import { pipeline } from 'node:stream/promises'
 import { Readable } from 'node:stream'
-
 
 async function downloadToFile(url: string, dest: string) {
   const r = await fetch(url, { redirect: 'follow' })
   if (!r.ok || !r.body) throw new Error(`HTTP ${r.status} ${url}`)
   mkdirSync(path.dirname(dest), { recursive: true })
-  // ¡STREAM! no guardes en memoria
   await pipeline(Readable.fromWeb(r.body as any), createWriteStream(dest))
-}
-
-async function fetchBin(url: string) {
-  const r = await fetch(url, { redirect: 'follow' })
-  if (!r.ok) throw new Error(`HTTP ${r.status} ${url}`)
-  return Buffer.from(await r.arrayBuffer())
 }
 
 async function ensureOnnx(filePath: string, urls: string[], minBytes = 1_000_000) {
   if (existsSync(filePath)) {
-    try {
-      const size = statSync(filePath).size
-      if (size >= minBytes) return
-      console.warn(`[face] ${path.basename(filePath)} muy pequeño (${size}), re-descargando`)
-    } catch {}
+    const size = statSync(filePath).size
+    if (size >= minBytes) return
+    console.warn(`[face] ${path.basename(filePath)} muy pequeño (${size}), re-descargando`)
   }
   mkdirSync(path.dirname(filePath), { recursive: true })
+
   let lastErr: any
   for (const u of urls) {
     try {
       console.log('[face] descargando', u)
       await downloadToFile(u, filePath)
-      const buf = await fetchBin(u)
-      if (buf.length < minBytes) throw new Error(`archivo pequeño: ${buf.length} bytes`)
-      await writeFile(filePath, buf)
-      console.log('[face] guardado', filePath, `(${buf.length} bytes)`)
+      const size = statSync(filePath).size
+      if (size < minBytes) throw new Error(`archivo pequeño: ${size} bytes`)
+      console.log('[face] guardado', filePath, `(${size} bytes)`)
       return
     } catch (e) {
       lastErr = e
@@ -46,8 +35,6 @@ async function ensureOnnx(filePath: string, urls: string[], minBytes = 1_000_000
   }
   throw new Error(`No pude obtener ${path.basename(filePath)}. Último error: ${String(lastErr)}`)
 }
-
-
 
 export let FACE_READY = false
 export let FACE_ERROR: string | null = null
@@ -64,19 +51,18 @@ const ready = (async () => {
     const recPath = path.resolve(modelsDir, 'rec.onnx')
     const recUrls = [process.env.REC_ONNX_URL!].filter(Boolean)
 
-    const urls:string[] = []
-    if (process.env.REC_ONNX_URL) urls.push(process.env.REC_ONNX_URL)
+    // descarga solo si falta o es demasiado pequeño
+    await ensureOnnx(recPath, recUrls, /* minBytes */ 50_000_000)
 
-    urls.push(
-  'https://raw.githubusercontent.com/openvinotoolkit/open_model_zoo/master/models/public/sface_2021dec/sface_2021dec.onnx',
-  'https://mirror.ghproxy.com/https://raw.githubusercontent.com/openvinotoolkit/open_model_zoo/master/models/public/sface_2021dec/sface_2021dec.onnx'
-)
-
-await ensureOnnx(recPath, recUrls, 50_000_000)  
+    // (opcional) si vas a usar detector:
+    if (process.env.DET_ONNX_URL) {
+      const detPath = path.resolve(modelsDir, 'det.onnx') // usa el mismo nombre que en tu servicio
+      const detUrls = [process.env.DET_ONNX_URL!]
+      await ensureOnnx(detPath, detUrls, 10_000_000)
+    }
 
     const { loadOnnx } = await import('#services/FaceOnnx')
-    await loadOnnx(modelsDir)
-    await loadOnnx(process.env.MODELS_DIR || './onnx_models')
+    await loadOnnx(modelsDir) // <-- UNA sola vez
     FACE_READY = true
     console.log('[face] ONNX cargado')
   } catch (e: any) {
@@ -84,4 +70,5 @@ await ensureOnnx(recPath, recUrls, 50_000_000)
     console.error('[face] boot onnx error:', FACE_ERROR)
   }
 })()
+
 export default ready
