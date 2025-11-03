@@ -9,4 +9,4 @@ Route.group(() => {
   Route.post('/enroll', faceController.enroll);
   Route.post('/verify', faceController.verify);
   Route.post('/verifySelf', faceController.verifySelf);
-}).prefix('/face')
+}).prefix('/face') 
