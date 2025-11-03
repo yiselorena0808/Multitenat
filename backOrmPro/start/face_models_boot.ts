@@ -1,6 +1,18 @@
 import path from 'node:path'
 import { existsSync, mkdirSync, statSync } from 'node:fs'
 import { writeFile } from 'node:fs/promises'
+import { createWriteStream } from 'node:fs'
+import {pipeline } from 'node:stream/promises'
+import { Readable } from 'node:stream'
+
+
+async function downloadToFile(url: string, dest: string) {
+  const r = await fetch(url, { redirect: 'follow' })
+  if (!r.ok || !r.body) throw new Error(`HTTP ${r.status} ${url}`)
+  mkdirSync(path.dirname(dest), { recursive: true })
+  // ¡STREAM! no guardes en memoria
+  await pipeline(Readable.fromWeb(r.body as any), createWriteStream(dest))
+}
 
 async function fetchBin(url: string) {
   const r = await fetch(url, { redirect: 'follow' })
@@ -21,6 +33,7 @@ async function ensureOnnx(filePath: string, urls: string[], minBytes = 1_000_000
   for (const u of urls) {
     try {
       console.log('[face] descargando', u)
+      await downloadToFile(u, filePath)
       const buf = await fetchBin(u)
       if (buf.length < minBytes) throw new Error(`archivo pequeño: ${buf.length} bytes`)
       await writeFile(filePath, buf)
@@ -49,6 +62,7 @@ const ready = (async () => {
 
     const modelsDir = process.env.MODELS_DIR || './onnx_models'
     const recPath = path.resolve(modelsDir, 'rec.onnx')
+    const recUrls = [process.env.REC_ONNX_URL!].filter(Boolean)
 
     const urls:string[] = []
     if (process.env.REC_ONNX_URL) urls.push(process.env.REC_ONNX_URL)
@@ -58,7 +72,7 @@ const ready = (async () => {
   'https://mirror.ghproxy.com/https://raw.githubusercontent.com/openvinotoolkit/open_model_zoo/master/models/public/sface_2021dec/sface_2021dec.onnx'
 )
 
-await ensureOnnx(recPath, urls, 1_000_000)  
+await ensureOnnx(recPath, recUrls, 50_000_000)  
 
     const { loadOnnx } = await import('#services/FaceOnnx')
     await loadOnnx(modelsDir)
