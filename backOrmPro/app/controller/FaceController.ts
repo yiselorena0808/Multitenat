@@ -4,49 +4,28 @@ import { computeEmbedding, bestMatch } from "#services/FaceOnnx";
 import fs from 'fs/promises';
 
 export default class FaceController {
+    
+public async enroll({ request, response }: HttpContext) {
+  const idUsuario = Number(request.input('id_usuario'))
+  if (!idUsuario) return response.badRequest({ message: 'Falta id_usuario' })
 
-  public async enroll({ auth, request, response}: HttpContext) {
-    const user = auth.user
-    if (!user) {
-        return response.unauthorized({ message: 'Usuario no autenticado' });
-    }
+  const file = request.file('image', { size:'5mb', extnames:['jpg','jpeg','png','webp'] })
+  if (!file) return response.badRequest({ message:'Falta image' })
+  if (!file.isValid) return response.badRequest(file.errors)
 
-    const file = request.file('image', {
-        size: '5mb',
-        extnames: ['jpg', 'jpeg', 'png', 'webp'],
-    })
-    if (!file) return response.badRequest({ message: 'No se ha proporcionado ninguna imagen' });
-    if (!file.isValid) return response.badRequest(file.errors);
+  const buffer = typeof (file as any).toBuffer === 'function'
+    ? await (file as any).toBuffer()
+    : await fs.readFile(file.tmpPath!)
 
-    let buffer: Buffer
-    if (typeof (file as any).toBuffer === 'function'){
-        buffer = await (file as any).toBuffer()
-    } else if (file.tmpPath) {
-        buffer = await fs.readFile(file.tmpPath)
-    } else {
-        return response.badRequest({ message: 'No se pudo procesar la imagen' });
-    }
+  const descriptor = await computeEmbedding(buffer)
 
-   try {
-       const descriptor = await computeEmbedding(buffer)
+  await Face.updateOrCreate(
+    { id_usuario: idUsuario },
+    { id_usuario: idUsuario, descriptor }
+  )
 
-       const existing = await Face.query().where('id_usuario', user.id).first()
-      if (existing) {
-        existing.descriptor = descriptor
-        await existing.save()
-      } else {
-        await Face.create({
-          id_usuario: user.id,
-          descriptor: descriptor
-        })
-      }
-
-      return {message: 'Rostro registrado correctamente', id_usuario: user.id}
-   } catch (e:any) {
-      return response.badRequest({message: e?.message ?? 'Error al procesar la imagen'})
-   }
-
-  }
+  return { ok: true, id_usuario: idUsuario, len: descriptor.length }
+}
 
   public async verify({ request, response}: HttpContext) {
     const file = request.file('image', {
