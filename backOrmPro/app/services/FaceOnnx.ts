@@ -117,12 +117,25 @@ export async function computeEmbedding(buffer: Buffer): Promise<number[]> {
   const H = REC_SIZE_H, W = REC_SIZE_W
 
   // Preprocesado a tamaño detectado
-  const raw = await sharp(buffer)
+let raw: Buffer
+try {
+  raw = await sharp(buffer)
+    .rotate()
     .resize(W, H, { fit: 'cover' })
     .removeAlpha()
-    .toColorspace('rgb')
+    .toColourspace('srgb')
     .raw()
     .toBuffer()
+} catch {
+  // sin conversión de espacio de color
+  raw = await sharp(buffer)
+    .rotate()
+    .resize(W, H, { fit: 'cover' })
+    .removeAlpha()
+    .raw()
+    .toBuffer()
+}
+
 
   // Normalización [-1, 1] (ajusta si tu modelo requiere otra)
   const float = new Float32Array(raw.length)
