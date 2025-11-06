@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import Usuario from '#models/usuario'
 import jwt from 'jsonwebtoken'
 import hash from '@adonisjs/core/services/hash'
+import Fingerprint from '#models/fingerprint'
 
 
 
@@ -171,6 +172,12 @@ class UsuarioService {
     const usuarios = await Usuario.query()
     return { total: usuarios.length, usuarios }
   }
+   public async guardarHuella(id_usuario: number, templateBuffer: Buffer) {
+    return Fingerprint.updateOrCreate(
+      { id_usuario },
+      { template: templateBuffer }
+    )
+  }
 
   public async bulkRegister(usuarios: BulkUsuarioDTO[]) {
     let created = 0
@@ -202,7 +209,7 @@ class UsuarioService {
     }
 
     return { created }
-  }
+    
 }
-
+}
 export default UsuarioService
