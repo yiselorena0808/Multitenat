@@ -211,5 +211,5 @@ class UsuarioService {
     return { created }
     
 }
-
+}
 export default UsuarioService
