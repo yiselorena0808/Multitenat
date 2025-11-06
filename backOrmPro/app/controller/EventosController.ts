@@ -1,7 +1,6 @@
 import type { HttpContext} from '@adonisjs/core/http'
 import EventosService from '../services/EventosService.js'
 import FcmHelper, { FcmData } from '../helpers/FcmHelper.js'
-import { notifyTenantNewEvent } from '#services/push_service'
 import { fcm } from '#start/firebase'
 
 
@@ -43,7 +42,7 @@ export default class EventosController {
     const publicacion = await service.createForUserTenant(user, data, archivoPath, imagenPath)
 
     // 5️ Enviar notificación a todos los usuarios suscritos al topic "eventos"
-    await fcm.messaging().send({
+    await fcm.send({
       topic: 'eventos',
       notification: {
         title: 'Nuevo evento creado',
