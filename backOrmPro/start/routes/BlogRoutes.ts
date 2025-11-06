@@ -18,4 +18,4 @@ Route.delete('/blogs/:id', blog.eliminar).use(authJwt.handle.bind(authJwt))
 
 Route.get('/eventos', blog.listar).use(authJwt.handle.bind(authJwt))
 
-Route.get('/crear', blog.crearNoti).use(authJwt.handle.bind(authJwt))
+Route.post('/crear', blog.crearNoti).use(authJwt.handle.bind(authJwt))
