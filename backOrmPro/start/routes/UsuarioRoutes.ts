@@ -16,3 +16,4 @@ Router.post('/bulkRegister', usuario.bulkRegister).use(authJwt.handle.bind(authJ
 Router.post('/registrarSGVA', usuario.registrarSGVA)
 
 Router.post('/huella/registrar', usuario.registrarHuella).use(authJwt.handle.bind(authJwt))
+Router.post('/huella/verificar', usuario.verificarHuella)

@@ -172,11 +172,32 @@ class UsuarioService {
     const usuarios = await Usuario.query()
     return { total: usuarios.length, usuarios }
   }
-   public async guardarHuella(id_usuario: number, templateBuffer: Buffer) {
-    return Fingerprint.updateOrCreate(
-      { id_usuario },
-      { template: templateBuffer }
-    )
+   public async guardarHuella(id_usuario: number, templateBase64: string) {
+    let fingerprint = await Fingerprint.query()
+      .where('id_usuario', id_usuario)
+      .first()
+
+    if (fingerprint) {
+      fingerprint.template = templateBase64
+      await fingerprint.save()
+    } else {
+      fingerprint = await Fingerprint.create({
+        id_usuario,
+        template: templateBase64
+      })
+    }
+
+    return fingerprint
+  }
+
+  public async verificarHuella(templateBase64: string) {
+    const huella = await Fingerprint.query().where('template', templateBase64).preload('user').first()
+
+    if (!huella) {
+      return null
+    }
+
+    return huella.user
   }
 
   public async bulkRegister(usuarios: BulkUsuarioDTO[]) {
@@ -209,7 +230,7 @@ class UsuarioService {
     }
 
     return { created }
-    
+  }
 }
 
 export default UsuarioService
