@@ -168,15 +168,32 @@ class UsuarioService {
     const usuarios = await Usuario.query()
     return { total: usuarios.length, usuarios }
   }
-   public async guardarHuella(id_usuario: number, templateBuffer: Buffer) {
-  // Buscar si el usuario ya tiene huella
-  const huellaExistente = await Fingerprint.findBy('id_usuario', id_usuario)
+   public async guardarHuella(id_usuario: number, templateBase64: string) {
+    let fingerprint = await Fingerprint.query()
+      .where('id_usuario', id_usuario)
+      .first()
 
-  if (huellaExistente) {
-    // Actualizar
-    huellaExistente.template = templateBuffer
-    await huellaExistente.save()
-    return { mensaje: 'Huella actualizada', huella: huellaExistente }
+    if (fingerprint) {
+      fingerprint.template = templateBase64
+      await fingerprint.save()
+    } else {
+      fingerprint = await Fingerprint.create({
+        id_usuario,
+        template: templateBase64
+      })
+    }
+
+    return fingerprint
+  }
+
+  public async verificarHuella(templateBase64: string) {
+    const huella = await Fingerprint.query().where('template', templateBase64).preload('user').first()
+
+    if (!huella) {
+      return null
+    }
+
+    return huella.user
   }
 
   // Crear si no existe

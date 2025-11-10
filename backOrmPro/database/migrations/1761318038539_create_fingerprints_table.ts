@@ -22,7 +22,7 @@ export default class extends BaseSchema {
       // En Postgres será BYTEA, en MySQL VARBINARY
 
       // --- B) Guardar base64 como texto (si prefieres) ---
-      table.specificType('template', 'bytea').notNullable()
+      table.text('template').notNullable()
 
       table.timestamp('created_at', { useTz: true }).notNullable().defaultTo(this.now())
       table.timestamp('updated_at', { useTz: true }).notNullable().defaultTo(this.now())

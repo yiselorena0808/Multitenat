@@ -234,35 +234,37 @@ console.log('DATOS ONLY:', datos)
       return response.status(500).json({ error: error.message })
  }
  }
- public async registrarHuella({ request, response }: HttpContext) {
-  try {
-    const { id_usuario, template } = request.only(['id_usuario', 'template'])
+   
+  public async registrarHuella({ request, auth }: HttpContext) {
+    const usuario = auth.user
+    const templateBase64 = request.input('template')
 
-    if (!id_usuario || !template) {
-      return response.badRequest({ error: 'Faltan datos: id_usuario o template' })
+    if (!templateBase64) {
+      return { error: 'No se recibió la huella' }
     }
 
-    const templateBuffer = Buffer.from(template, 'base64')
+    const guardada = await usuarioService.guardarHuella(usuario.id, templateBase64)
 
-    const huellaExistente = await Fingerprint.findBy('id_usuario', id_usuario)
-
-    if (huellaExistente) {
-      huellaExistente.template = templateBuffer
-      await huellaExistente.save()
-    } else {
-      await Fingerprint.create({
-        id_usuario,
-        template: templateBuffer,
-      })
+    return {
+      mensaje: 'Huella guardada correctamente',
+      huella: guardada
     }
-
-    return response.status(201).json({ mensaje: "Huella guardada correctamente" })
-
-  } catch (error) {
-    console.error("Error guardando huella:", error)
-    return response.status(500).json({ error: error.message })
   }
-}
+
+  public async verificarHuella({ request }: HttpContext) {
+    const templateBase64 = request.input('template')
+
+    const usuario = await usuarioService.verificarHuella(templateBase64)
+
+    if (!usuario) {
+      return { encontrado: false, mensaje: 'No coincide con ninguna huella' }
+    }
+
+    return {
+      encontrado: true,
+      usuario
+    }
+  }
 
 }
 
