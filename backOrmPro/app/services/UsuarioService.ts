@@ -196,15 +196,6 @@ class UsuarioService {
     return huella.user
   }
 
-  // Crear si no existe
-  const nuevaHuella = await Fingerprint.create({
-    id_usuario,
-    template: templateBuffer,
-  })
-
-  return { mensaje: 'Huella registrada', huella: nuevaHuella }
-}
-
   public async bulkRegister(usuarios: BulkUsuarioDTO[]) {
     let created = 0
 
