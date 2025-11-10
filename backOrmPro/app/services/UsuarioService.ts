@@ -4,11 +4,7 @@ import jwt from 'jsonwebtoken'
 import hash from '@adonisjs/core/services/hash'
 import Fingerprint from '#models/fingerprint'
 
-
-
-
 const SECRET = process.env.JWT_SECRET || 'sstrict'
-
 
 type BulkUsuarioDTO = {
   id_empresa: number | string
@@ -173,11 +169,24 @@ class UsuarioService {
     return { total: usuarios.length, usuarios }
   }
    public async guardarHuella(id_usuario: number, templateBuffer: Buffer) {
-    return Fingerprint.updateOrCreate(
-      { id_usuario },
-      { template: templateBuffer }
-    )
+  // Buscar si el usuario ya tiene huella
+  const huellaExistente = await Fingerprint.findBy('id_usuario', id_usuario)
+
+  if (huellaExistente) {
+    // Actualizar
+    huellaExistente.template = templateBuffer
+    await huellaExistente.save()
+    return { mensaje: 'Huella actualizada', huella: huellaExistente }
   }
+
+  // Crear si no existe
+  const nuevaHuella = await Fingerprint.create({
+    id_usuario,
+    template: templateBuffer,
+  })
+
+  return { mensaje: 'Huella registrada', huella: nuevaHuella }
+}
 
   public async bulkRegister(usuarios: BulkUsuarioDTO[]) {
     let created = 0
@@ -209,7 +218,7 @@ class UsuarioService {
     }
 
     return { created }
-    
+  }
 }
 
 export default UsuarioService
