@@ -205,7 +205,7 @@ console.log('DATOS ONLY:', datos)
         id_area,
         nombre,
         apellido,
-        correo_electronico, // nombre_usuario igual al correo
+        correo_electronico,
         correo_electronico,
         cargo,
         contrasena,
@@ -267,3 +267,4 @@ console.log('DATOS ONLY:', datos)
   }
 
 }
+
