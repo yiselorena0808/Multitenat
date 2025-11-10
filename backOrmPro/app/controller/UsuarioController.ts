@@ -224,7 +224,7 @@ console.log('DATOS ONLY:', datos)
       // Guardar huella
       await Fingerprint.create({
         id_usuario: nuevoUsuario.id,
-        template: templateBuffer,
+        template: templateBuffer.toString('base64'),
       })
 
       return response.status(201).json({ mensaje: 'Usuario SGVA creado correctamente', usuario: nuevoUsuario })
@@ -238,6 +238,10 @@ console.log('DATOS ONLY:', datos)
   public async registrarHuella({ request, auth }: HttpContext) {
     const usuario = auth.user
     const templateBase64 = request.input('template')
+
+    if (!usuario) {
+      return { error: 'Usuario no autenticado' }
+    }
 
     if (!templateBase64) {
       return { error: 'No se recibió la huella' }
