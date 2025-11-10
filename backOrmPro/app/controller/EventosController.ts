@@ -85,67 +85,72 @@ export default class EventosController {
   }
 
  public async crearNoti({ auth, request, response }: HttpContext) {
-    // 1) Usuario autenticado
-    const user = auth?.user ?? (request as any).user
-    if (!user) return response.unauthorized({ message: 'Usuario no autenticado' })
+  // 1️⃣ Usuario autenticado
+  const user = auth?.user ?? (request as any).user
+  if (!user) return response.unauthorized({ message: 'Usuario no autenticado' })
 
-    // 2) Campos del body
-    const { titulo, descripcion, fecha_actividad } = request.only([
-      'titulo',
-      'descripcion',
-      'fecha_actividad',
-    ])
+  // 2️⃣ Campos del body
+  const { titulo, descripcion, fecha_actividad } = request.only([
+    'titulo',
+    'descripcion',
+    'fecha_actividad',
+  ])
 
-    // 3) Completar con datos del usuario (¡no confíes en el cliente!)
-    const data: any = {
-      id_usuario: user.id,
-      nombre_usuario: user.nombre_usuario ?? user.nombre ?? 'Usuario',
-      titulo,
-      descripcion,
-      id_empresa: user.id_empresa,
-      fecha_actividad:
-        typeof fecha_actividad === 'string' ? new Date(fecha_actividad) : fecha_actividad,
+  // 3️⃣ Completar con datos del usuario
+  const data: any = {
+    id_usuario: user.id,
+    nombre_usuario: user.nombre_usuario ?? user.nombre ?? 'Usuario',
+    titulo,
+    descripcion,
+    id_empresa: user.id_empresa,
+    fecha_actividad:
+      typeof fecha_actividad === 'string' ? new Date(fecha_actividad) : fecha_actividad,
+  }
+
+  // 4️⃣ Archivos (multipart/form-data)
+  const imagen = request.file('imagen')
+  const archivo = request.file('archivo')
+  const imagenPath = imagen?.tmpPath
+  const archivoPath = archivo?.tmpPath
+
+  try {
+    // 5️⃣ Crear evento
+    const service = new EventosService()
+    const publicacion = await service.crear(data, archivoPath, imagenPath)
+
+    // 6️⃣ Topic por empresa o entorno
+    const prefix = process.env.FCM_TOPIC_PREFIX || 'prod'
+    const topic = `${prefix}_tenant_${publicacion.id_empresa}`
+
+    // 7️⃣ Datos extra para FCM (siempre strings)
+    const fcmData: FcmData = {
+      tipo: 'evento', // 🔹 identifica qué abrir
+      id: String(publicacion.id), // 🔹 ID del evento
+      titulo: publicacion.titulo ?? '',
+      idEmpresa: String(publicacion.id_empresa ?? ''),
+      click_action: 'OPEN_EVENT_DETAIL', // 🔹 acción para Android
     }
-
-    // 4) Archivos (multipart/form-data)
-    const imagen = request.file('imagen')
-    const archivo = request.file('archivo')
-    const imagenPath = imagen?.tmpPath
-    const archivoPath = archivo?.tmpPath
 
     try {
-      // 5) Persistir usando tu servicio (Cloudinary incluido)
-      const service = new EventosService()
-      const publicacion = await service.crear(data, archivoPath, imagenPath)
-
-      // 6) Enviar notificación al topic del tenant (multitenant)
-      //    Topic = "<prefijo>_tenant_<id_empresa>", ej. "prod_tenant_42"
-      const prefix = process.env.FCM_TOPIC_PREFIX || 'prod'
-      const topic = `${prefix}_tenant_${publicacion.id_empresa}`
-
-      // FCM 'data' debe ser string->string
-      const fcmData: FcmData = {
-        eventId: String(publicacion.id),
-        tenantId: String(publicacion.id_empresa),
-      }
-
-      try {
-        await FcmHelper.enviarNotificacion({
-          titulo: `Nuevo evento: ${publicacion.titulo}`,
-          cuerpo: descripcion ?? '',
-          topic,
-          data: fcmData,
-        })
-      } catch (pushErr) {
-        // No tumbes la creación si FCM falla
-        console.error('FCM push error:', pushErr)
-      }
-
-      // 7) Respuesta
-      return response.created({ ok: true, data: publicacion })
-    } catch (error: any) {
-      console.error('Error en crear el evento:', error)
-      return response.status(500).json({ message: error.message ?? 'Error interno' })
+      await FcmHelper.enviarNotificacion({
+        titulo: `Nuevo evento: ${publicacion.titulo}`,
+        cuerpo: descripcion ?? '',
+        topic,
+        data: fcmData,
+      })
+      console.log('✅ Notificación enviada con datos:', fcmData)
+    } catch (pushErr) {
+      console.error('⚠️ Error al enviar notificación FCM:', pushErr)
     }
+
+    // 8️⃣ Respuesta
+    return response.created({
+      message: 'Evento creado y notificación enviada correctamente',
+      data: publicacion,
+    })
+  } catch (error: any) {
+    console.error('❌ Error al crear el evento:', error)
+    return response.status(500).json({ message: error.message ?? 'Error interno' })
   }
+ }
 }
