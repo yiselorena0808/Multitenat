@@ -1,15 +1,15 @@
 import { defineConfig } from '@adonisjs/cors'
 
-/**
- * Configuration options to tweak the CORS policy. The following
- * options are documented on the official documentation website.
- *
- * https://docs.adonisjs.com/guides/security/cors
- */
 const corsConfig = defineConfig({
   enabled: true,
-  origin: ['https://backsst.onrender.com', 'http://localhost:5173'],
-  methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:3000',
+    'http://localhost:3333',
+    'https://backsst.onrender.com'
+  ],
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   headers: true,
   exposeHeaders: [],
   credentials: true,
