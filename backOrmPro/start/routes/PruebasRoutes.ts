@@ -33,10 +33,19 @@ router.get('/face/status', async () => {
   }
 })
 
-// --- al inicio de tu servidor ---
-const net = require('net');
-const dns = require('dns').promises;
-const { Client } = require('pg');
+// imports ESM
+import * as net from 'node:net';
+import { promises as dns } from 'node:dns';
+import pg from 'pg';
+const { Client } = pg;
+
+type EnvResponse = {
+  host?: string;
+  port: number;
+  user?: string;
+  database?: string;
+  hasPassword: boolean;
+};
 
 const DB = {
   host: process.env.DB_HOST,
@@ -47,15 +56,7 @@ const DB = {
 };
 
 // 1) Ver envs (sanitizado)
-interface EnvResponse {
-  host: string | undefined;
-  port: number;
-  user: string | undefined;
-  database: string | undefined;
-  hasPassword: boolean;
-}
-
-router.get('/_diag/env', async (ctx) => {
+router.get('/_diag/env', async (ctx: any) => {
   const envResponse: EnvResponse = {
     host: DB.host,
     port: DB.port,
@@ -67,35 +68,42 @@ router.get('/_diag/env', async (ctx) => {
 });
 
 // 2) Test de socket TCP (equivalente a `nc`)
-router.get('/_diag/socket', async (ctx) => {
+router.get('/_diag/socket', async (ctx: any) => {
   try {
-    const { address, family } = await dns.lookup(DB.host);
+    const { address, family } = await dns.lookup(String(DB.host));
     await new Promise<void>((resolve, reject) => {
-      const s = net.createConnection({ host: DB.host, port: DB.port });
+      const s = net.createConnection({ host: String(DB.host), port: DB.port });
       const t = setTimeout(() => { s.destroy(); reject(new Error('TIMEOUT')); }, 4000);
       s.once('connect', () => { clearTimeout(t); s.destroy(); resolve(); });
       s.once('error', reject);
     });
     return ctx.response.json({ ok: true, resolved: { address, family }, port: DB.port });
-  } catch (e) {
-    return ctx.response.status(500).json({ ok: false, code: e.code || e.message });
+  } catch (e: any) {
+    return ctx.response.status(500).json({ ok: false, code: e.code ?? e.message });
   }
 });
 
 // 3) Test de conexión PG (SELECT 1) con SSL
-router.get('/_diag/pg', async (ctx) => {
-  const client = new Client({ ...DB, ssl: { rejectUnauthorized: false } });
+router.get('/_diag/pg', async (ctx: any) => {
+  const client = new Client({
+    host: DB.host,
+    port: DB.port,
+    user: DB.user,
+    password: DB.password,
+    database: DB.database,
+    ssl: { rejectUnauthorized: false },
+  } as any);
+
   try {
     await client.connect();
     const r = await client.query('select 1 as ok');
     await client.end();
     return ctx.response.json({ ok: r.rows?.[0]?.ok === 1 });
-  } catch (e) {
+  } catch (e: any) {
     await client.end().catch(() => {});
     return ctx.response.status(500).json({ ok: false, code: e.code, message: e.message });
   }
 });
 
 // 4) Healthcheck simple
-router.get('/healthz', (ctx) => ctx.response.send('ok'));
-
+router.get('/healthz', (ctx: any) => ctx.response.send('ok'));
