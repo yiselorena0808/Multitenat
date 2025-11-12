@@ -7,7 +7,6 @@ const authJwt = new AuthJwt()
 
 Router.post('/register',usuario.register)
 Router.post('/login', usuario.login)
-Router.get('/usuarioLogueado', usuario.usuarioLogueado).middleware((authJwt).handle.bind(authJwt))
 Router.get('/usuarios/:id', usuario.listarUsuarioId).use(authJwt.handle.bind(authJwt))
 Router.get('/listarUsuarios/:id_empresa', usuario.listarUsuariosPorEmpresa).use(authJwt.handle.bind(authJwt))
 Router.put('/actualizarUsuario/:id', usuario.actualizarUsuario).use(authJwt.handle.bind(authJwt))

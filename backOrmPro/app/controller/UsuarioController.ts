@@ -160,10 +160,11 @@ export default class UsuarioController {
   }
 
   async registrarHuella({ request, auth, response }: HttpContext) {
-    const usuario = auth.user
+    const usuario = (auth as any).user
     const templateBase64 = request.input('template')
 
     if (!templateBase64) return response.badRequest({ error: 'No se recibió la huella' })
+    if (!usuario || !usuario.id) return response.unauthorized({ error: 'Usuario no autenticado' })
 
     const guardada = await usuarioService.guardarHuella(usuario.id, templateBase64)
     return response.json({ mensaje: 'Huella guardada correctamente', huella: guardada })
