@@ -1,5 +1,6 @@
 import admin from 'firebase-admin'
 
+
 export const fcm = admin.initializeApp({
   credential: admin.credential.cert({
     projectId: process.env.FIREBASE_PROJECT_ID!,

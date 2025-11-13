@@ -11,7 +11,7 @@ export default class Fingerprint extends BaseModel {
   declare id_usuario: number
 
   @column()
-  declare template: Buffer 
+  declare template: string 
 
   @belongsTo(() => Usuario, {foreignKey: 'id_usuario'})
   declare user: BelongsTo<typeof Usuario>
