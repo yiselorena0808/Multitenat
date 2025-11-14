@@ -178,4 +178,13 @@ export default class UsuarioController {
 
     return response.json({ encontrado: true, usuario })
   }
+
+  public async listarGeneral() {
+    try {
+    return await usuarioService.listarGeneral()
+    } catch (error) {
+      console.error('Error en listarGeneral:', error)
+      throw error
+    }
+  }
 }
