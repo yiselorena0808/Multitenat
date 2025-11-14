@@ -4,11 +4,7 @@ import jwt from 'jsonwebtoken'
 import hash from '@adonisjs/core/services/hash'
 import Fingerprint from '#models/fingerprint'
 
-
-
-
 const SECRET = process.env.JWT_SECRET || 'sstrict'
-
 
 type BulkUsuarioDTO = {
   id_empresa: number | string
@@ -23,15 +19,11 @@ type BulkUsuarioDTO = {
 }
 
 class UsuarioService {
-
   private async verificarContrasena(hashAlmacenado: string, contrasenaPlano: string) {
     try {
-      // Si es formato nuevo PHC ($bcrypt$...)
       if (hashAlmacenado.startsWith('$bcrypt$')) {
         return await hash.verify(hashAlmacenado, contrasenaPlano)
       }
-
-      // Si es formato clásico ($2b$...)
       return await bcrypt.compare(contrasenaPlano, hashAlmacenado)
     } catch (error) {
       console.error('Error verificando contraseña:', error)
@@ -39,7 +31,7 @@ class UsuarioService {
     }
   }
 
-  // Registrar usuario
+  // 🔹 Registrar usuario
   async register(
     id_empresa: number,
     id_area: number,
@@ -55,7 +47,7 @@ class UsuarioService {
       return { mensaje: 'Las contraseñas no coinciden' }
     }
 
-    const hash = await bcrypt.hash(contrasena, 10)
+    const hashPass = await bcrypt.hash(contrasena, 10)
 
     const user = await Usuario.create({
       id_empresa,
@@ -65,7 +57,7 @@ class UsuarioService {
       nombre_usuario,
       correo_electronico,
       cargo,
-      contrasena: hash,
+      contrasena: hashPass,
     })
 
     return {
@@ -78,7 +70,7 @@ class UsuarioService {
     }
   }
 
-  // Login
+  // 🔹 Login
   async login(correo_electronico: string, contrasena: string) {
     if (!correo_electronico || !contrasena) {
       throw new Error('Campos obligatorios')
@@ -92,13 +84,10 @@ class UsuarioService {
 
     if (!usuario) throw new Error('El usuario no existe')
 
-      const ok = await this.verificarContrasena(usuario.contrasena, contrasena)
-    if (!ok) {
-      throw new Error('Contraseña incorrecta')
-    }
+    const ok = await this.verificarContrasena(usuario.contrasena, contrasena)
+    if (!ok) throw new Error('Contraseña incorrecta')
 
-
-      if (hash.needsReHash(usuario.contrasena)) {
+    if (hash.needsReHash(usuario.contrasena)) {
       usuario.contrasena = await hash.make(contrasena)
       await usuario.save()
     }
@@ -117,7 +106,7 @@ class UsuarioService {
     return { mensaje: 'Login correcto', token, user: usuario }
   }
 
-  // Listar usuario por ID y empresa
+  // 🔹 Listar usuario por ID y empresa
   async listarId(id: number, empresaId: number) {
     return await Usuario.query()
       .where('id', id)
@@ -127,7 +116,7 @@ class UsuarioService {
       .first()
   }
 
-  // 🔹 NUEVA FUNCIÓN: listar todos los usuarios de una empresa
+  // 🔹 Listar todos los usuarios de una empresa
   async listarPorEmpresa(empresaId: number) {
     return await Usuario.query()
       .where('id_empresa', empresaId)
@@ -135,50 +124,68 @@ class UsuarioService {
       .preload('area')
   }
 
-  // Actualizar usuario
+  // 🔹 Actualizar usuario
   async actualizar(id: number, datos: Partial<Usuario>, empresaId: number) {
-  const usuario = await Usuario.query()
-    .where('id', id)
-    .andWhere('id_empresa', empresaId)
-    .first()
+    const usuario = await Usuario.query()
+      .where('id', id)
+      .andWhere('id_empresa', empresaId)
+      .first()
 
-    console.log('Service actualizar => id:', id, 'empresaId:', empresaId)
-    console.log('Datos que se van a mergear:', datos)
+    if (!usuario) return { error: 'Usuario no encontrado o autorizado' }
 
+    usuario.merge(datos)
+    await usuario.save()
+    return usuario
+  }
 
-  if (!usuario) return { error: 'Usuario no encontrado o autorizado' }
-
-
-  usuario.merge(datos)
-
-  await usuario.save()
-  return usuario
-}
-
-  // Eliminar usuario
+  // 🔹 Eliminar usuario
   async eliminar(id: number, empresaId: number) {
     const usuario = await Usuario.query()
       .where('id', id)
       .andWhere('id_empresa', empresaId)
       .first()
+
     if (!usuario) return { mensaje: 'Usuario no encontrado o autorizado' }
 
     await usuario.delete()
     return { mensaje: 'Usuario eliminado' }
   }
 
-  // Conteo de usuarios
+  // 🔹 Conteo de usuarios
   async conteo() {
     const usuarios = await Usuario.query()
     return { total: usuarios.length, usuarios }
   }
-   public async guardarHuella(id_usuario: number, templateBuffer: Buffer) {
-    return Fingerprint.updateOrCreate(
-      { id_usuario },
-      { template: templateBuffer }
-    )
+
+  // 🔹 Guardar huella en Base64
+  public async guardarHuella(id_usuario: number, templateBase64: string) {
+    let fingerprint = await Fingerprint.query().where('id_usuario', id_usuario).first()
+
+    if (fingerprint) {
+      fingerprint.template = templateBase64
+      await fingerprint.save()
+    } else {
+      fingerprint = await Fingerprint.create({
+        id_usuario,
+        template: templateBase64,
+      })
+    }
+
+    return fingerprint
   }
 
+  // 🔹 Verificar huella exacta (texto Base64)
+  public async verificarHuella(templateBase64: string) {
+    const huella = await Fingerprint.query()
+      .where('template', templateBase64)
+      .preload('user')
+      .first()
+
+    if (!huella) return null
+    return huella.user
+  }
+
+  // 🔹 Registro masivo
   public async bulkRegister(usuarios: BulkUsuarioDTO[]) {
     let created = 0
 
@@ -202,7 +209,7 @@ class UsuarioService {
         nombre_usuario: u.nombre_usuario,
         correo_electronico: u.correo_electronico,
         cargo: u.cargo,
-        contrasena: hashedPassword
+        contrasena: hashedPassword,
       })
 
       created++
@@ -216,4 +223,5 @@ class UsuarioService {
     return await Usuario.all()
   }
 }
+
 export default UsuarioService

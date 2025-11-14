@@ -143,7 +143,7 @@ export default class ReporteService {
     .where('id_usuario', sgvaId)
     .firstOrFail()
 
-  const sgvaTemplate = (fingerprint.template as Buffer).toString('base64')
+  const sgvaTemplate = Buffer.from(fingerprint.template as string).toString('base64')
 
   // Llamar a microservicio Python
   const pythonUrl = Env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
