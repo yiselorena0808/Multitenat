@@ -130,4 +130,14 @@ export default class ListaChequeoController {
         })
       }
   
+   public async listarGeneral({ response }: HttpContext) {
+      try {
+        const listas = await listaService.listarGeneral()
+        return response.json({ datos: listas })
+      } catch (error) {
+        console.error(error)
+        return response.internalServerError({ error: 'Error al listar las listas de chequeo' })
+      }  
+  }
+
 }

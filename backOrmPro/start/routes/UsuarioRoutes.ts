@@ -15,4 +15,7 @@ Router.delete('/eliminarUsuario/:id', usuario.eliminarUsuario).use(authJwt.handl
 Router.post('/bulkRegister', usuario.bulkRegister).use(authJwt.handle.bind(authJwt))
 Router.post('/registrarSGVA', usuario.registrarSGVA)
 
+
 Router.post('/huella/registrar', usuario.registrarHuella).use(authJwt.handle.bind(authJwt))
+
+Router.get('/listarUsuariosGeneral', usuario.listarGeneral).use(authJwt.handle.bind(authJwt))

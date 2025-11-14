@@ -260,4 +260,14 @@ console.log('DATOS ONLY:', datos)
 
 }
 
+public async listarGeneral({ response }: HttpContext) {
+    try {
+      const usuarios = await usuarioService.listarGeneral()
+      return response.json({ datos: usuarios })
+    } catch (error) {
+      console.error(error)
+      return response.status(500).json({ error: 'Error al listar los usuarios' })
+    }
+  }
+
 }

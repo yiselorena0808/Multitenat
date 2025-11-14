@@ -130,4 +130,8 @@ public async createForUserTenant(
     return publicacion
   }
 
+
+  async listarGeneral() {
+    return await Eventos.all()
+  }
 }

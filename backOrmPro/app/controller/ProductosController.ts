@@ -73,4 +73,15 @@ export default class ProductosController {
       return response.notFound({ message: error.message })
     }
   }
+
+  public async listarGeneral({ response }: HttpContext) {
+    try {
+      const service = new ProductoService()
+      const productos = await service.listarGeneral()
+      return response.json({ datos: productos })
+    } catch (error) {
+      console.error(error)
+      return response.internalServerError({ error: 'Error al listar los productos' })
+    }
+  }
 }

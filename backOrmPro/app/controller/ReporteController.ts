@@ -279,6 +279,17 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
       console.error('💥 Error comparar huellas:', err.response?.data || err.message)
       return response.status(500).json({ error: 'Error comparando huella con microservicio' })
     }
+
 }
+
+  public async listarGeneral({ response }: HttpContext) {
+    try {
+      const reportes = await reporteService.listarGeneral()
+      return response.json({ datos: reportes })
+    } catch (error) {
+      console.error(error)
+      return response.status(500).json({ error: 'Error al listar los reportes' })
+    }
+  }
   }
  

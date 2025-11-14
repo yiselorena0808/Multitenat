@@ -144,6 +144,10 @@ async productosPorCargo(id_cargo: number) {
     
   }
 
+  async listarGeneral(){
+    return await GestionEpp.all()
+  }
+
 }
 
 export default GestionEppService

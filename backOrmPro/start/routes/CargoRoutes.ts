@@ -15,6 +15,7 @@ Route.group(() => {
   // Productos por cargo
   Route.get('/:id_cargo/productos', cargosController.productosPorCargo)
   Route.get('/nombre/:nombre/productos', cargosController.productosPorCargoNombre)
+  Route.get('/listarGeneral', cargosController.listarGeneral)
 })
   .prefix('/cargos')
   .use(authJwt.handle.bind(authJwt))
