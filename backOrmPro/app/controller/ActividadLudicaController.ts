@@ -124,4 +124,12 @@ export default class ActividadLudicaController {
         })
       }
   
+  public async listarGeneral ({ response }: HttpContext) {
+        try {
+          const actividades = await actividadService.listaGeneral()
+          return response.ok(actividades)
+        } catch (error: any) {
+          return response.status(500).json({ error: error.message })
+        }
+      }
 }

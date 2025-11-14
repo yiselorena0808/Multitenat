@@ -68,5 +68,9 @@ async listarPorCargo(id_cargo: number) {
     return cargo.productos
   }
 
+ async listarGeneral () {
+    return await Producto.all()
+  }
+
 
 }

@@ -88,4 +88,8 @@ export default class ListaChequeoService {
         return await query.paginate(page, perPage)
       
     }
+
+    async listarGeneral() {
+      return await ListaChequeo.all()
+    }
 }

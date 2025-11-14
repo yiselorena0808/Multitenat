@@ -161,4 +161,8 @@ export default class ReporteService {
 
   return { estado, score, reporte }
 }
+
+async listarGeneral() {
+    return await Reporte.all()
+  }
 }

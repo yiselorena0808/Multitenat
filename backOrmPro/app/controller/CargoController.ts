@@ -102,4 +102,14 @@ public async vincularProductos({ request, params, response }: HttpContext) {
   }
 }
 
+public async listarGeneral({ response }: HttpContext) {
+    try {
+      const cargos = await service.listarGeneral()
+      return response.json(cargos)
+    } catch (error) {
+      console.error(error)
+      return response.status(500).json({ error: 'Error al listar los cargos' })
+    }
+  }
+
 }

@@ -80,4 +80,8 @@ export default class CargoService {
 
     return cargo.productos
   }
+
+  async listarGeneral () {
+    return await Cargo.all()
+  }
 }

@@ -74,4 +74,8 @@ async listarUsuario (id_usuario: number, id_empresa: number, filtros: Filtros = 
       return await query.paginate(page, perPage)
     
   }
+
+  async listaGeneral () {
+    return await ActividadLudica.all()
+  }
 }

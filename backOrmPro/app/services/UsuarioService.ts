@@ -216,6 +216,11 @@ class UsuarioService {
     }
 
     return { created }
+    
+}
+
+  async listarGeneral() {
+    return await Usuario.all()
   }
 }
 

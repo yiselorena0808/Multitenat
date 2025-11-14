@@ -161,6 +161,11 @@ public async listarMisGestiones ({ request, response}: HttpContext) {
       })
     }
 
+  async listarGeneral({ response }: HttpContext) {
+    const gestiones = await gestionService.listarGeneral()
+    return response.json(gestiones)
+  }
+
 }
 
 export default GestionController
