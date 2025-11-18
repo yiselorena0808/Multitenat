@@ -1,0 +1,14 @@
+import { BaseModel, column } from '@adonisjs/lucid/orm'
+import type { BinaryLike } from 'node:crypto'
+
+export default class Huella extends BaseModel {
+  @column({ isPrimary: true })
+  declare id: number
+
+  @column()
+  declare id_usuario: number
+
+  @column()
+  declare huella_template: BinaryLike
+
+}
