@@ -153,4 +153,9 @@ export default class EventosController {
     return response.status(500).json({ message: error.message ?? 'Error interno' })
   }
  }
+
+ public async listarGeneral({ response }: HttpContext) {
+    const publicaciones = await service.listarGeneral()
+    return response.json(publicaciones)
+ }
 }
