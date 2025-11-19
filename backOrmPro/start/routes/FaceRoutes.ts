@@ -1,12 +1,14 @@
 import Route from "@adonisjs/core/services/router";
-import FaceController from "../../app/controller/FaceController.js";
+import FaceAuthController from "../../app/controller/FaceAuthController.js";
+import AuthJwt from '../../app/middleware/auth_jwt.js'
 
 
-const faceController = new FaceController();
+const authJwt = new AuthJwt();
+const faceController = new FaceAuthController();
 
 
 Route.group(() => {
-  Route.post('/enroll', faceController.enroll);
-  Route.post('/verify', faceController.verify);
-  Route.post('/verifySelf', faceController.verifySelf);
+  Route.post('/register', faceController.register)
+  Route.post('/login', faceController.login)
 }).prefix('/face') 
+  .use(authJwt.handle.bind(authJwt))
