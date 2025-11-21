@@ -67,5 +67,15 @@ export default class ProductoService {
     return await Producto.all()
   }
 
+    async asignarProductoACargo(cargoId: number, productoId: number) {
+    const cargo = await Cargo.findOrFail(cargoId)
+
+    // crea el registro en cargo_productos (cargo_id, producto_id)
+    await cargo.related('productos').attach([productoId])
+
+    // opcional: recargar productos para devolverlos actualizados
+    await cargo.load('productos')
+    return cargo.productos
+  }
 
 }

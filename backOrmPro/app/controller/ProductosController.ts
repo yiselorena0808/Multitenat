@@ -127,4 +127,21 @@ export default class ProductosController {
       return response.status(500).json({ error: 'Error al exportar productos' })
     }
   }
+
+    async asignarProductoACargo({ params, request, response }: HttpContext) {
+    const cargoId = Number(params.id)
+    const service = new ProductoService()
+    const { productoId } = request.only(['productoId'])
+
+    if (Number.isNaN(cargoId)) {
+      return response.badRequest({ message: 'El id del cargo debe ser numérico' })
+    }
+
+    if (!productoId) {
+      return response.badRequest({ message: 'Falta productoId en el body' })
+    }
+
+    const productos = await service.asignarProductoACargo(cargoId, Number(productoId))
+    return response.ok(productos) // o return response.ok({ message: 'Asignado correctamente' })
+  }
 }
