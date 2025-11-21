@@ -137,7 +137,7 @@ export default class ActividadLudicaController {
       }
 
    
-  public async exportarActividadesExcel({ response }: HttpContext) {
+   public async exportarActividadesExcel({ response }: HttpContext) {
     try {
       const check = await ActividadLudica.all()
 
@@ -167,21 +167,17 @@ export default class ActividadLudicaController {
       })
 
       const fileName = `actividades_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
+      const buffer = await workbook.xlsx.writeBuffer()
 
-      response.header(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      )
+      response
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="${fileName}"`)
+        .header('Access-Control-Allow-Origin', 'http://localhost:5173')
+        .header('Access-Control-Allow-Credentials', 'true')
 
-      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
-      
-      await workbook.xlsx.write(response.response)
-      response.status(200)
-
-      } catch (error: any) {
-        return response.status(500).json({ error: error.message })
-      }
-    
+      return response.send(buffer)
+    } catch (error: any) {
+      console.error(error)
+      return response.status(500).json({ error: 'Error al exportar actividades lúdicas' })
     }
-  
-}
+  }}

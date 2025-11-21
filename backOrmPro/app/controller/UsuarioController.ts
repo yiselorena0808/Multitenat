@@ -225,10 +225,15 @@ export default class UsuarioController {
       })
 
       const fileName = `usuarios_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
-      response.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
-      await workbook.xlsx.write(response.response)
-      response.status(200)
+      const buffer = await workbook.xlsx.writeBuffer()
+
+      response
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="${fileName}"`)
+        .header('Access-Control-Allow-Origin', 'http://localhost:5173')
+        .header('Access-Control-Allow-Credentials', 'true')
+
+      return response.send(buffer)
     } catch (error: any) {
       console.error(error)
       return response.status(500).json({ error: 'Error al exportar usuarios' })

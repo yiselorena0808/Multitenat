@@ -188,8 +188,6 @@ public async listarMisGestiones ({ request, response}: HttpContext) {
         { header: 'Cargo', key: 'cargo', width: 25},
       ]
 
-      const fileName = `epp_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
-
       check.forEach((gestion) => {
         worksheet.addRow({
           id: gestion.id,
@@ -204,20 +202,20 @@ public async listarMisGestiones ({ request, response}: HttpContext) {
         })
       })
 
-      response.header(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      )
+      const fileName = `epp_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
+      const buffer = await workbook.xlsx.writeBuffer()
 
-      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
+      response
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="${fileName}"`)
+        .header('Access-Control-Allow-Origin', 'http://localhost:5173')
+        .header('Access-Control-Allow-Credentials', 'true')
 
-      await workbook.xlsx.write(response.response)
-      response.status(200)
-
-      } catch (error: any) {
-        return response.status(500).json({ error: error.message })
-      }
-
-}}
+      return response.send(buffer)
+    } catch (error: any) {
+      console.error(error)
+      return response.status(500).json({ error: 'Error al exportar gestiones EPP' })
+    }
+  }}
 
 export default GestionController
