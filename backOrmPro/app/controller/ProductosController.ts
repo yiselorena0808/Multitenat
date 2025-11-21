@@ -4,7 +4,6 @@ import ProductoService from '../services/ProductoService.js'
 import ExcelJS from 'exceljs'
 import Producto from '#models/producto'
 
-console.log('🧩 ProductoService importado:', ProductoService)
 
 export default class ProductosController {
   // Crear producto
@@ -58,23 +57,29 @@ export default class ProductosController {
     return response.ok(result)
   }
 
-  // Listar productos por ID de cargo
-  async listarPorCargo({ params, response }: HttpContext) {
+   async listarPorCargo({ params, response }: HttpContext) {
+    const cargoId = Number(params.id)
     const service = new ProductoService()
-    const productos = await service.listarPorCargo(params.id)
+
+    if (Number.isNaN(cargoId)) {
+      return response.badRequest({ message: 'El id del cargo debe ser numérico' })
+    }
+
+    const productos = await service.listarPorCargoId(cargoId)
     return response.ok(productos)
   }
 
-  // Listar productos por nombre de cargo
+  // GET /cargos/nombre/:nombre/productos
   async listarPorCargoNombre({ params, response }: HttpContext) {
-    const service = new ProductoService()
     try {
+      const service = new ProductoService()
       const productos = await service.listarPorCargoNombre(params.nombre)
       return response.ok(productos)
-    } catch (error) {
-      return response.notFound({ message: error.message })
+    } catch {
+      return response.notFound({ message: 'Cargo no encontrado' })
     }
   }
+  
 
   public async listarGeneral({ response }: HttpContext) {
     try {
