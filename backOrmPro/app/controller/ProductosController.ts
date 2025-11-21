@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { schema } from '@adonisjs/validator'
 import ProductoService from '../services/ProductoService.js'
+import ExcelJS from 'exceljs'
+import Producto from '#models/producto'
 
 console.log('🧩 ProductoService importado:', ProductoService)
 
@@ -82,6 +84,42 @@ export default class ProductosController {
     } catch (error) {
       console.error(error)
       return response.internalServerError({ error: 'Error al listar los productos' })
+    }
+  }
+
+  public async exportarProductosExcel({ response }: HttpContext) {
+    try {
+      const checks = await Producto.all()
+
+      const workbook = new ExcelJS.Workbook()
+      const worksheet = workbook.addWorksheet('Productos')
+
+      worksheet.columns = [
+        { header: 'ID', key: 'id_producto', width: 12 },
+        { header: 'Nombre', key: 'nombre', width: 30 },
+        { header: 'Descripción', key: 'descripcion', width: 40 },
+        { header: 'Estado', key: 'estado', width: 12 },
+        { header: 'Fecha Creación', key: 'created_at', width: 20 },
+      ]
+
+      checks.forEach((p) => {
+        worksheet.addRow({
+          id_producto: p.id_producto,
+          nombre: p.nombre,
+          descripcion: p.descripcion,
+          estado: p.estado ? 'Activo' : 'Inactivo',
+          created_at: p.createdAt?.toISODate?.() ?? '',
+        })
+      })
+
+      const fileName = `productos_${new Date().toISOString().slice(0,19).replace(/[:T]/g, '_')}.xlsx`
+      response.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
+      await workbook.xlsx.write(response.response)
+      response.status(200)
+    } catch (error: any) {
+      console.error(error)
+      return response.status(500).json({ error: 'Error al exportar productos' })
     }
   }
 }

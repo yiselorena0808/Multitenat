@@ -1,5 +1,7 @@
 import CargoService from '../services/CargoService.js'
 import type { HttpContext } from '@adonisjs/core/http'
+import ExcelJS from 'exceljs'
+import Cargo from '#models/cargo'
 
 const service = new CargoService()
 
@@ -109,6 +111,38 @@ public async listarGeneral({ response }: HttpContext) {
     } catch (error) {
       console.error(error)
       return response.status(500).json({ error: 'Error al listar los cargos' })
+    }
+  }
+
+  public async exportarCargosExcel({ response }: HttpContext) {
+    try {
+      const checks = await Cargo.all()
+
+      const workbook = new ExcelJS.Workbook()
+      const worksheet = workbook.addWorksheet('Cargos')
+
+      worksheet.columns = [
+        { header: 'ID', key: 'id_cargo', width: 12 },
+        { header: 'Cargo', key: 'cargo', width: 30 },
+        { header: 'Empresa ID', key: 'id_empresa', width: 12 },
+      ]
+
+      checks.forEach((c) => {
+        worksheet.addRow({
+          id_cargo: c.id_cargo,
+          cargo: c.cargo,
+          id_empresa: c.id_empresa,
+        })
+      })
+
+      const fileName = `cargos_${new Date().toISOString().slice(0,19).replace(/[:T]/g, '_')}.xlsx`
+      response.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
+      await workbook.xlsx.write(response.response)
+      response.status(200)
+    } catch (error: any) {
+      console.error(error)
+      return response.status(500).json({ error: 'Error al exportar cargos' })
     }
   }
 

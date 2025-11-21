@@ -1,5 +1,8 @@
 import type { HttpContext} from '@adonisjs/core/http'
 import EventosService from '../services/EventosService.js'
+import ExcelJS from 'exceljs'
+import Eventos from '#models/eventos'
+import { DateTime } from 'luxon'
 import FcmHelper, { FcmData } from '../helpers/FcmHelper.js'
 import { fcm } from '#start/firebase'
 
@@ -157,5 +160,45 @@ export default class EventosController {
  public async listarGeneral({ response }: HttpContext) {
     const publicaciones = await service.listarGeneral()
     return response.json(publicaciones)
+ }
+
+ public async exportarEventosExcel({ response }: HttpContext) {
+   try {
+     const checks = await Eventos.all()
+
+     const workbook = new ExcelJS.Workbook()
+     const worksheet = workbook.addWorksheet('Eventos')
+
+     worksheet.columns = [
+       { header: 'ID', key: 'id', width: 10 },
+       { header: 'Título', key: 'titulo', width: 30 },
+       { header: 'Descripción', key: 'descripcion', width: 40 },
+       { header: 'Fecha Actividad', key: 'fecha_actividad', width: 20 },
+       { header: 'Usuario', key: 'nombre_usuario', width: 25 },
+       { header: 'Imagen', key: 'imagen', width: 30 },
+       { header: 'Archivo', key: 'archivo', width: 30 },
+     ]
+
+     checks.forEach((row) => {
+       worksheet.addRow({
+         id: row.id,
+         titulo: row.titulo,
+         descripcion: row.descripcion,
+         fecha_actividad: row.fecha_actividad ? row.fecha_actividad.toString() : '',
+         nombre_usuario: row.nombre_usuario,
+         imagen: row.imagen,
+         archivo: row.archivo,
+       })
+     })
+
+     const fileName = `eventos_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
+     response.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+     response.header('Content-Disposition', `attachment; filename="${fileName}"`)
+     await workbook.xlsx.write(response.response)
+     response.status(200)
+   } catch (error: any) {
+     console.error(error)
+     return response.status(500).json({ error: 'Error al exportar eventos' })
+   }
  }
 }

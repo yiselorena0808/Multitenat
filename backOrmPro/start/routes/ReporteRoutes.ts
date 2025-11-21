@@ -14,4 +14,4 @@ Route.get('/listarUsu', reporte.listarMisReportes).use(authJwt.handle.bind(authJ
 Route.get('/listarMio/:id', reporte.mostarMio).use(authJwt.handle.bind(authJwt))
 Route.post('/verificarReporte/:id/sgva', reporte.verificarReporteSGVA).use(authJwt.handle.bind(authJwt))
 Route.get('/listarReportesGeneral', reporte.listarGeneral).use(authJwt.handle.bind(authJwt))
-Route.get('/exportarExcel', reporte.exportarReportesExcel).use(authJwt.handle.bind(authJwt))
+Route.get('/reportesExcel', reporte.exportarReportesExcel).use(authJwt.handle.bind(authJwt))
