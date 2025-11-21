@@ -12,3 +12,4 @@ Route.put('/actualizarListaChequeo/:id', lista.actualizar).use(authJwt.handle.bi
 Route.delete('/eliminarListaChequeo/:id', lista.eliminar).use(authJwt.handle.bind(authJwt))
 Route.get('/listarlistasU', lista.listarMisListas).use(authJwt.handle.bind(authJwt))
 Route.get('/listarListasGeneral', lista.listarGeneral).use(authJwt.handle.bind(authJwt))
+Route.get('/ListasChequeoExcel', lista.exportarListaChequeoExcel).use(authJwt.handle.bind(authJwt))

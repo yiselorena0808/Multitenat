@@ -19,3 +19,4 @@ Router.post('/huella/registrar', usuario.registrarHuella).use(authJwt.handle.bin
 
 Router.get('/listarUsuariosGeneral', usuario.listarGeneral).use(authJwt.handle.bind(authJwt))
 Router.post('/huella/verificar', usuario.verificarHuella)
+Router.get('/usuariosExcel', usuario.exportarUsuariosExcel).use(authJwt.handle.bind(authJwt))

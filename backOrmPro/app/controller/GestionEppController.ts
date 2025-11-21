@@ -2,6 +2,9 @@ import GestionEppService from '#services/GestionEppService'
 import { messages } from '@vinejs/vine/defaults'
 import type { HttpContext} from '@adonisjs/core/http'
 import { schema } from '@adonisjs/validator'
+import ExcelJS from 'exceljs'
+import GestionEpp from '#models/gestion_epp'
+import { DateTime } from 'luxon'
 
 
 
@@ -166,6 +169,55 @@ public async listarMisGestiones ({ request, response}: HttpContext) {
     return response.json(gestiones)
   }
 
-}
+  public async exportarGestionesExcel({ response }: HttpContext) {
+    try {
+      const check = await GestionEpp.all()
+
+      const workbook = new ExcelJS.Workbook()
+      const worksheet = workbook.addWorksheet('Gestiones EPP')
+
+      worksheet.columns = [
+        { header: 'ID', key: 'id', width: 10 },
+        { header: 'Nombre', key: 'nombre', width: 20 },
+        { header: 'Apellido', key: 'apellido', width: 20 },
+        { header: 'Cédula', key: 'cedula', width: 20 },
+        { header: 'Importancia', key: 'importancia', width: 30 },
+        { header: 'Estado', key: 'estado', width: 15 },
+        { header: 'Cantidad', key: 'cantidad', width: 10 },
+        { header: 'Fecha de Creación', key: 'created_at', width: 20 },
+        { header: 'Cargo', key: 'cargo', width: 25},
+      ]
+
+      const fileName = `epp_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
+
+      check.forEach((gestion) => {
+        worksheet.addRow({
+          id: gestion.id,
+          nombre: gestion.nombre,
+          apellido: gestion.apellido,
+          cedula: gestion.cedula,
+          importancia: gestion.importancia,
+          estado: gestion.estado ? 'Activo' : 'Inactivo',
+          cantidad: gestion.cantidad,
+          created_at: gestion.createdAt.toISODate(),
+          cargo: gestion.cargo 
+        })
+      })
+
+      response.header(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      )
+
+      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
+
+      await workbook.xlsx.write(response.response)
+      response.status(200)
+
+      } catch (error: any) {
+        return response.status(500).json({ error: error.message })
+      }
+
+}}
 
 export default GestionController

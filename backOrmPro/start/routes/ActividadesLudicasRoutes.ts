@@ -12,3 +12,4 @@ Route.put('/actualizarActividadLudica/:id', actividad.actualizar).use(authJwt.ha
 Route.delete('/eliminarActividadLudica/:id', actividad.eliminar).use(authJwt.handle.bind(authJwt))
 Route.get('/listarActis', actividad.listarMisActividades).use(authJwt.handle.bind(authJwt))
 Route.get('/listarActividadesLudicasGeneral', actividad.listarGeneral).use(authJwt.handle.bind(authJwt))
+Route.get('/ActividadesExcel', actividad.exportarActividadesExcel).use(authJwt.handle.bind(authJwt))

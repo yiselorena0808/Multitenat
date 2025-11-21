@@ -1,6 +1,9 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import ActividadLudicaService from '#services/ActividadLudicaService'
 import cloudinary from '#config/cloudinary'
+import ExcelJs from 'exceljs'
+import ActividadLudica from '#models/actividad_ludica'
+import { DateTime } from 'luxon'
 
 const actividadService = new ActividadLudicaService()
 
@@ -132,4 +135,53 @@ export default class ActividadLudicaController {
           return response.status(500).json({ error: error.message })
         }
       }
+
+   
+  public async exportarActividadesExcel({ response }: HttpContext) {
+    try {
+      const check = await ActividadLudica.all()
+
+      const workbook = new ExcelJs.Workbook()
+      const worksheet = workbook.addWorksheet('Actividades Lúdicas')
+
+      worksheet.columns = [
+        { header: 'ID', key: 'id', width: 10 },
+        { header: 'ID Usuario', key: 'id_usuario', width: 15 },
+        { header: 'Nombre Actividad', key: 'nombre_actividad', width: 30 },
+        { header: 'Fecha Actividad', key: 'fecha_actividad', width: 20 },
+        { header: 'Descripción', key: 'descripcion', width: 40 },
+        { header: 'Nombre Usuario', key: 'nombre_usuario', width: 25 },
+        { header: 'Fecha de Creación', key: 'created_at', width: 20 },
+      ]
+
+      check.forEach((actividad) => {
+        worksheet.addRow({
+          id: actividad.id,
+          id_usuario: actividad.id_usuario,
+          nombre_actividad: actividad.nombre_actividad,
+          fecha_actividad: actividad.fecha_actividad,
+          descripcion: actividad.descripcion,
+          nombre_usuario: actividad.nombre_usuario,
+          created_at: actividad.createdAt.toISODate(),
+        })
+      })
+
+      const fileName = `actividades_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
+
+      response.header(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      )
+
+      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
+      
+      await workbook.xlsx.write(response.response)
+      response.status(200)
+
+      } catch (error: any) {
+        return response.status(500).json({ error: error.message })
+      }
+    
+    }
+  
 }

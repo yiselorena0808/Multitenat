@@ -21,3 +21,4 @@ Route.get('/eventos', blog.listar).use(authJwt.handle.bind(authJwt))
 Route.post('/crearNoti', blog.crearNoti).use(authJwt.handle.bind(authJwt))
 
 Route.get('/listarEventoGeneral', blog.listarGeneral).use(authJwt.handle.bind(authJwt))
+Route.get('/EventosExcel', blog.exportarEventosExcel).use(authJwt.handle.bind(authJwt))

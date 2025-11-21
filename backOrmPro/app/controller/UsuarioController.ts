@@ -1,5 +1,8 @@
 import UsuarioService from '#services/UsuarioService'
 import type { HttpContext } from '@adonisjs/core/http'
+import ExcelJS from 'exceljs'
+import Usuario from '#models/usuario'
+import { DateTime } from 'luxon'
 import Fingerprint from '#models/fingerprint'
 import { normalizeHuellaDataUrl } from '../utils/huella_topic.js'
 
@@ -185,6 +188,50 @@ export default class UsuarioController {
     } catch (error) {
       console.error('Error en listarGeneral:', error)
       throw error
+    }
+  }
+
+  public async exportarUsuariosExcel({ response }: HttpContext) {
+    try {
+      const checks = await Usuario.all()
+
+      const workbook = new ExcelJS.Workbook()
+      const worksheet = workbook.addWorksheet('Usuarios')
+
+      worksheet.columns = [
+        { header: 'ID', key: 'id', width: 10 },
+        { header: 'Nombre', key: 'nombre', width: 20 },
+        { header: 'Apellido', key: 'apellido', width: 20 },
+        { header: 'Nombre Usuario', key: 'nombre_usuario', width: 25 },
+        { header: 'Correo', key: 'correo_electronico', width: 30 },
+        { header: 'Cargo', key: 'cargo', width: 20 },
+        { header: 'Empresa ID', key: 'id_empresa', width: 12 },
+        { header: 'Area ID', key: 'id_area', width: 12 },
+        { header: 'Fecha Creación', key: 'created_at', width: 20 },
+      ]
+
+      checks.forEach((u) => {
+        worksheet.addRow({
+          id: u.id,
+          nombre: u.nombre,
+          apellido: u.apellido,
+          nombre_usuario: u.nombre_usuario,
+          correo_electronico: u.correo_electronico,
+          cargo: u.cargo,
+          id_empresa: u.id_empresa,
+          id_area: u.id_area,
+          created_at: u.createdAt?.toISODate?.() ?? '',
+        })
+      })
+
+      const fileName = `usuarios_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
+      response.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
+      await workbook.xlsx.write(response.response)
+      response.status(200)
+    } catch (error: any) {
+      console.error(error)
+      return response.status(500).json({ error: 'Error al exportar usuarios' })
     }
   }
 }
