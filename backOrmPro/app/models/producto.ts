@@ -36,11 +36,13 @@ export default class Producto extends BaseModel {
   })
   declare gestiones: ManyToMany<typeof GestionEpp>
 
-@manyToMany(() => Cargo, {
-  pivotTable: 'cargo_productos',
-  pivotForeignKey: 'producto_id',
-  pivotRelatedForeignKey: 'cargo_id',
-})
-declare cargos: ManyToMany<typeof Cargo>
+  @manyToMany(() => Cargo, {
+    pivotTable: 'cargo_productos',
+    localKey: 'id_producto',       
+    pivotForeignKey: 'producto_id', 
+    relatedKey: 'id_cargo',         
+    pivotRelatedForeignKey: 'cargo_id',
+  })
+  declare cargos: ManyToMany<typeof Cargo>
 
 }
