@@ -183,12 +183,15 @@ export default class ListaChequeoController {
       })
 
       const fileName = `listas_chequeo_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
+      const buffer = await workbook.xlsx.writeBuffer()
 
-      response.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
+      response
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="${fileName}"`)
+        .header('Access-Control-Allow-Origin', 'http://localhost:5173')
+        .header('Access-Control-Allow-Credentials', 'true')
 
-      await workbook.xlsx.write(response.response)
-      response.status(200)
+      return response.send(buffer)
     } catch (error: any) {
       console.error(error)
       return response.status(500).json({ error: 'Error al exportar las listas de chequeo' })

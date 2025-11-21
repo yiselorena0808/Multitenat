@@ -3,7 +3,7 @@ import { schema } from '@adonisjs/validator'
 import ProductoService from '../services/ProductoService.js'
 import ExcelJS from 'exceljs'
 import Producto from '#models/producto'
-
+import { DateTime } from 'luxon'
 
 export default class ProductosController {
   // Crear producto
@@ -117,11 +117,16 @@ export default class ProductosController {
         })
       })
 
-      const fileName = `productos_${new Date().toISOString().slice(0,19).replace(/[:T]/g, '_')}.xlsx`
-      response.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
-      await workbook.xlsx.write(response.response)
-      response.status(200)
+      const fileName = `productos_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
+      const buffer = await workbook.xlsx.writeBuffer()
+
+      response
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="${fileName}"`)
+        .header('Access-Control-Allow-Origin', 'http://localhost:5173')
+        .header('Access-Control-Allow-Credentials', 'true')
+
+      return response.send(buffer)
     } catch (error: any) {
       console.error(error)
       return response.status(500).json({ error: 'Error al exportar productos' })

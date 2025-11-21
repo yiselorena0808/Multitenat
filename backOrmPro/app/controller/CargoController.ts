@@ -2,6 +2,7 @@ import CargoService from '../services/CargoService.js'
 import type { HttpContext } from '@adonisjs/core/http'
 import ExcelJS from 'exceljs'
 import Cargo from '#models/cargo'
+import { DateTime } from 'luxon'
 
 const service = new CargoService()
 
@@ -135,11 +136,16 @@ public async listarGeneral({ response }: HttpContext) {
         })
       })
 
-      const fileName = `cargos_${new Date().toISOString().slice(0,19).replace(/[:T]/g, '_')}.xlsx`
-      response.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
-      await workbook.xlsx.write(response.response)
-      response.status(200)
+      const fileName = `cargos_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
+      const buffer = await workbook.xlsx.writeBuffer()
+
+      response
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="${fileName}"`)
+        .header('Access-Control-Allow-Origin', 'http://localhost:5173')
+        .header('Access-Control-Allow-Credentials', 'true')
+
+      return response.send(buffer)
     } catch (error: any) {
       console.error(error)
       return response.status(500).json({ error: 'Error al exportar cargos' })
