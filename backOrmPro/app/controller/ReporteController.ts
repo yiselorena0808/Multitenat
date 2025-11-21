@@ -332,6 +332,11 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
 
       const fileName = `reportes_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
 
+      response.header(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      )
+
       response.header('Content-Disposition', `attachment; filename="${fileName}"`)
 
       await workbook.xlsx.write(response.response)
