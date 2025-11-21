@@ -8,7 +8,8 @@ const corsConfig = defineConfig({
     'http://localhost:3000',
     'http://localhost:3333',
     'https://backsst.onrender.com',
-    'https://unreproaching-rancorously-evelina.ngrok-free.dev'
+    'https://unreproaching-rancorously-evelina.ngrok-free.dev',
+    'https://unreproaching-rancorously-evelina.ngrok-free.dev',
   ],
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   headers: true,

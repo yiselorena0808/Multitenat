@@ -16,5 +16,6 @@ router.get('/cargo/nombre/:nombre', productosController.listarPorCargoNombre)
 router.get('/listarGeneral', productosController.listarGeneral)
 router.get('/Excel', productosController.exportarProductosExcel)
 })
-    .prefix('/productos')
+.prefix('/productos')
 .use(authJwt.handle.bind(authJwt))
+

@@ -44,26 +44,21 @@ export default class ProductoService {
     return { message: 'Producto eliminado con éxito' }
   }
 
-  // 📦 Listar productos por ID de cargo
-async listarPorCargo(id_cargo: number) {
-    // Buscar el cargo y cargar su relación con productos
+  async listarPorCargoId(id_cargo: number) {
     const cargo = await Cargo.query()
-      .where('id', id_cargo)
-      .preload('productos') // 👈 esto carga los productos asociados
-      .first()
+      .where('id_cargo', id_cargo)   // 👈 usa el nombre real de la PK
+      .preload('productos')
+      .firstOrFail()
 
-    if (!cargo) throw new Error('Cargo no encontrado')
-
-    return cargo.productos // 👈 devolvemos los productos del cargo
+    return cargo.productos
   }
 
-  async listarPorCargoNombre(nombre_cargo: string) {
+  // Listar productos por nombre de cargo
+  async listarPorCargoNombre(nombreCargo: string) {
     const cargo = await Cargo.query()
-      .where('nombre', nombre_cargo)
+      .where('cargo', nombreCargo)  // o 'nombre_cargo' / 'nombre', según tu BD
       .preload('productos')
-      .first()
-
-    if (!cargo) throw new Error('Cargo no encontrado')
+      .firstOrFail()
 
     return cargo.productos
   }
