@@ -296,56 +296,63 @@ public async verificarReporteSGVA({ params, request, response }: HttpContext) {
   }
 
   public async exportarReportesExcel({ response }: HttpContext) {
-    try {
-      const checks = await Reporte.all()
+  try {
+    const checks = await Reporte.all()
 
-      const workbook = new ExcelJS.Workbook()
-      const worksheet = workbook.addWorksheet('Reportes')
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Reportes')
 
-      worksheet.columns = [
-        { header: 'ID', key: 'id_reporte', width: 10 },
-        { header: 'Usuario', key: 'nombre_usuario', width: 30 },
-        { header: 'Cargo', key: 'cargo', width: 20 },
-        { header: 'Cédula', key: 'cedula', width: 15 },
-        { header: 'Fecha', key: 'fecha', width: 15 },
-        { header: 'Lugar', key: 'lugar', width: 20 },
-        { header: 'Descripción', key: 'descripcion', width: 50 },
-        { header: 'Estado', key: 'estado', width: 15 },
-        { header: 'Imagen', key: 'imagen', width: 30 },
-        { header: 'Archivos', key: 'archivos', width: 30 },
-      ]
+    worksheet.columns = [
+      { header: 'ID', key: 'id_reporte', width: 10 },
+      { header: 'Usuario', key: 'nombre_usuario', width: 30 },
+      { header: 'Cargo', key: 'cargo', width: 20 },
+      { header: 'Cédula', key: 'cedula', width: 15 },
+      { header: 'Fecha', key: 'fecha', width: 15 },
+      { header: 'Lugar', key: 'lugar', width: 20 },
+      { header: 'Descripción', key: 'descripcion', width: 50 },
+      { header: 'Estado', key: 'estado', width: 15 },
+      { header: 'Imagen', key: 'imagen', width: 30 },
+      { header: 'Archivos', key: 'archivos', width: 30 },
+    ]
 
-      checks.forEach((check) => {
-        worksheet.addRow({
-          id_reporte: check.id_reporte,
-          nombre_usuario: check.nombre_usuario,
-          cargo: check.cargo,
-          cedula: check.cedula,
-          fecha: check.fecha,
-          lugar: check.lugar,
-          descripcion: check.descripcion,
-          estado: check.estado,
-          imagen: check.imagen,
-          archivos: check.archivos,
-        })
+    checks.forEach((check) => {
+      worksheet.addRow({
+        id_reporte: check.id_reporte,
+        nombre_usuario: check.nombre_usuario,
+        cargo: check.cargo,
+        cedula: check.cedula,
+        fecha: check.fecha,
+        lugar: check.lugar,
+        descripcion: check.descripcion,
+        estado: check.estado,
+        imagen: check.imagen,
+        archivos: check.archivos,
       })
+    })
 
-      const fileName = `reportes_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
+    const fileName = `reportes_${DateTime.now().toFormat('yyyyLLdd_HHmm')}.xlsx`
 
-      response.header(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    // 👇 En vez de escribir directo al stream, generamos un buffer
+    const buffer = await workbook.xlsx.writeBuffer()
+
+    response
+      .header(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       )
+      .header('Content-Disposition', `attachment; filename="${fileName}"`)
+      // 👇 Por si el middleware no entra, metemos ACAO a mano
+      .header('Access-Control-Allow-Origin', 'http://localhost:5173')
+      .header('Access-Control-Allow-Credentials', 'true')
 
-      response.header('Content-Disposition', `attachment; filename="${fileName}"`)
-
-      await workbook.xlsx.write(response.response)
-
-      response.response
-      } catch (error) {
-      console.error(error)
-      return response.status(500).json({ error: 'Error al exportar los reportes' })
-    }
+    // Envía el binario usando la API de Adonis, NO response.response
+    return response.send(buffer)
+  } catch (error) {
+    console.error(error)
+    return response
+      .status(500)
+      .json({ error: 'Error al exportar los reportes' })
   }
+}
 }
  
