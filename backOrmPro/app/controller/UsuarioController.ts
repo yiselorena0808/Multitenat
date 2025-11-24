@@ -22,6 +22,50 @@ export default class UsuarioController {
       'confirmacion',
     ])
 
+        const { contrasena, confirmacion } = data
+
+    // 1. ¿Coinciden?
+    if (contrasena !== confirmacion) {
+      return response.badRequest({
+        error: 'La contraseña y la confirmación no coinciden',
+      })
+    }
+
+    if (!contrasena || contrasena.length < 8) {
+  return response.badRequest({
+    error: 'La contraseña debe tener mínimo 8 caracteres',
+  })
+}
+
+// Al menos una minúscula
+if (!/[a-z]/.test(contrasena)) {
+  return response.badRequest({
+    error: 'La contraseña debe contener al menos una letra minúscula',
+  })
+}
+
+// Al menos una mayúscula
+if (!/[A-Z]/.test(contrasena)) {
+  return response.badRequest({
+    error: 'La contraseña debe contener al menos una letra mayúscula',
+  })
+}
+
+// Al menos un número
+if (!/[0-9]/.test(contrasena)) {
+  return response.badRequest({
+    error: 'La contraseña debe contener al menos un número',
+  })
+}
+
+// Al menos un carácter especial (cualquier cosa que no sea letra ni número)
+if (!/[^A-Za-z0-9]/.test(contrasena)) {
+  return response.badRequest({
+    error: 'La contraseña debe contener al menos un carácter especial',
+  })
+}
+
+
     const resultado = await usuarioService.register(
       data.id_empresa,
       data.id_area,
@@ -33,6 +77,8 @@ export default class UsuarioController {
       data.contrasena,
       data.confirmacion
     )
+
+    
 
     return response.status(201).json(resultado)
   }
