@@ -7,7 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       table.integer('id_usuario').notNullable().unsigned().references('id').inTable('usuarios').onDelete('CASCADE')
-      table.binary('huella_template').notNullable()
+      table.text('huella_template').notNullable()
     })
   }
 
