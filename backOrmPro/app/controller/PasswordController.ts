@@ -72,11 +72,39 @@ export default class PasswordController {
     }
 
     // ✅ Validar nueva contraseña (mínimo ejemplo)
-    if (!contrasena || contrasena.length < 8) {
-      return response.badRequest({
-        error: 'La contraseña debe tener mínimo 8 caracteres',
-      })
-    }
+if (!contrasena || contrasena.length < 8) {
+  return response.badRequest({
+    error: 'La contraseña debe tener mínimo 8 caracteres',
+  })
+}
+
+// Al menos una minúscula
+if (!/[a-z]/.test(contrasena)) {
+  return response.badRequest({
+    error: 'La contraseña debe contener al menos una letra minúscula',
+  })
+}
+
+// Al menos una mayúscula
+if (!/[A-Z]/.test(contrasena)) {
+  return response.badRequest({
+    error: 'La contraseña debe contener al menos una letra mayúscula',
+  })
+}
+
+// Al menos un número
+if (!/[0-9]/.test(contrasena)) {
+  return response.badRequest({
+    error: 'La contraseña debe contener al menos un número',
+  })
+}
+
+// Al menos un carácter especial (cualquier cosa que no sea letra ni número)
+if (!/[^A-Za-z0-9]/.test(contrasena)) {
+  return response.badRequest({
+    error: 'La contraseña debe contener al menos un carácter especial',
+  })
+}
 
     // Cambiar contraseña
     usuario.contrasena = await hash.make(contrasena)
