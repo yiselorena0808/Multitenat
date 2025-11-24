@@ -107,3 +107,9 @@ router.get('/_diag/pg', async (ctx: any) => {
 
 // 4) Healthcheck simple
 router.get('/healthz', (ctx: any) => ctx.response.send('ok'));
+
+
+router.post('/debug-public', async ({ response }) => {
+  console.log('ENTRA A /debug-public')
+  return response.ok({ ok: true })
+})
