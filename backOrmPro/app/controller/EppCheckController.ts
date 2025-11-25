@@ -20,6 +20,7 @@ const YOLO_TO_EPP: Record<string, EppType> = {
   hand_glove: 'gloves',
   handGlove: 'gloves',
 
+  
   // gafas
   Glasses: 'glasses',
   goggles: 'glasses',
