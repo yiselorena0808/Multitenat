@@ -10,6 +10,7 @@ const corsConfig = defineConfig({
     'https://backsst.onrender.com',
     'https://unreproaching-rancorously-evelina.ngrok-free.dev',
     'https://unreproaching-rancorously-evelina.ngrok-free.dev',
+    'https://terminadofrontend.onrender.com',
   ],
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   headers: true,
