@@ -4,6 +4,55 @@ import axios from 'axios'
 import FormData from 'form-data'
 import fs from 'node:fs'
 
+//Con esto se definen clases genéricas de EPP
+
+type EppType = 'helmet' | 'gloves' | 'glasses' | 'vest' | 'mask'
+
+const YOLO_TO_EPP: Record<string, EppType> = {
+  // cascos
+  Helmet: 'helmet',
+  HardHat: 'helmet',
+  HeadHat: 'helmet',
+  head_helmet: 'helmet',
+
+  // guantes
+  Gloves: 'gloves',
+  hand_glove: 'gloves',
+  handGlove: 'gloves',
+
+  // gafas
+  Glasses: 'glasses',
+  goggles: 'glasses',
+  eye_glasses: 'glasses',
+
+  // chaleco
+  'Safety Vest': 'vest',
+  'Safety-Vest': 'vest',
+
+  // mascarilla
+  face_mask: 'mask',
+  Mask: 'mask',
+  mask: 'mask',
+}
+
+// Etiquetas bonitas para responder al cliente
+const EPP_LABELS: Record<EppType, string> = {
+  helmet: 'Casco',
+  gloves: 'Guantes',
+  glasses: 'Gafas de seguridad',
+  vest: 'Chaleco reflectivo',
+  mask: 'Mascarilla',
+}
+
+
+const REQUIRED_BY_CONTEXT: Record<string, EppType[]> = {
+  construction: ['helmet', 'gloves', 'glasses', 'vest'],
+  medical: ['mask', 'gloves', 'glasses'],
+  welding: ['helmet', 'gloves', 'glasses'],
+}
+
+
+
 export default class PpeChecksController {
   public async store({ request, response }: HttpContext) {
     const image = request.file('image', {
@@ -24,6 +73,14 @@ export default class PpeChecksController {
       return response.internalServerError({
         error: 'No se pudo acceder al archivo temporal',
       })
+    }
+
+    //Analiza lo que manda Android
+    const context = (request.input('context') || 'construction') as keyof typeof REQUIRED_BY_CONTEXT
+    const requiredEpp = REQUIRED_BY_CONTEXT[context]
+
+    if (!requiredEpp) {
+      return response.badRequest({ error: `Contexto no soportado: ${context}` })
     }
 
     // Enviar al microservicio Python usando el tmpPath
@@ -51,21 +108,27 @@ export default class PpeChecksController {
       confidence: number
     }>
 
+        const presentEpp = new Set<EppType>()
+    for (const det of detections) {
+      const epp = YOLO_TO_EPP[det.class_name]
+      if (epp) {
+        presentEpp.add(epp)
+      }
+    }
+
     // Ajusta estos nombres a los que salen en model.names
-    const REQUIRED_EPP = ['Helmet', 'Gloves', 'Safety Vest', 'Glasses']
+   const missingEppTypes = requiredEpp.filter((epp) => !presentEpp.has(epp))
+    const ok = missingEppTypes.length === 0
 
-    const present = new Set(detections.map((d) => d.class_name))
-    const missing = REQUIRED_EPP.filter((name) => !present.has(name))
-
-    const ok = missing.length === 0
+    const missingLabels = missingEppTypes.map((epp) => EPP_LABELS[epp])
 
     return response.ok({
       ok,
+      context,
       message: ok
         ? 'La persona lleva los EPP requeridos'
-        : 'Faltan uno o más elementos de EPP',
-      missing,
-      // puedes quitar esto en producción si no lo necesitas
+        : 'Faltan elementos de EPP',
+      missing: missingLabels,   // <- aquí van los EPP faltantes, ya en español
       rawDetections: detections,
     })
   }
