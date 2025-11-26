@@ -6,52 +6,54 @@ import ExcelJS from 'exceljs'
 import GestionEpp from '#models/gestion_epp'
 import { DateTime } from 'luxon'
 
-
-
 const gestionService = new GestionEppService()
 
-
 class GestionController {
-async crearGestion({ request, response }: HttpContext) {
+  async crearGestion({ request, response }: HttpContext) {
     const gestionSchema = schema.create({
       cedula: schema.string(),
-      id_cargo: schema.number(), // o schema.number() si es un id
+      id_cargo: schema.number(),
       importancia: schema.string.optional(),
-      estado: schema.string.optional(), // "activo", "inactivo"
+      estado: schema.string.optional(),
       cantidad: schema.number.optional(),
       id_area: schema.number.optional(),
-      productos: schema.array().members(schema.number()), // array de ids
-    })
+      id_empresa: schema.number(),
+      productos: schema.array().members(schema.number()),
+    });
 
-    const data = await request.validate({ schema: gestionSchema })
-    const usuario = (request as any).user
+    const data = await request.validate({ schema: gestionSchema });
+    const usuario = (request as any).user;
 
     try {
-         const { cedula, id_cargo, importancia, estado, cantidad, productos, id_area } = data
+      const { cedula, id_cargo, importancia, estado, cantidad, productos, id_area, id_empresa } = data;
 
-    // 3️⃣ Crear la gestión usando el servicio
-    const gestion = await gestionService.crear(
-      {
-        cedula,
-        importancia,
-        estado: estado === 'activo',
-        cantidad,
-      },
-      usuario,
-      productos,
-      id_cargo,
-      id_area 
-    )
+      if (!usuario) {
+        return response.unauthorized({ mensaje: "Usuario no autenticado" });
+      }
 
-     return response.created({
-      mensaje: 'Gestión creada correctamente',
-      datos: gestion,
-    })
+      const gestion = await gestionService.crear(
+        {
+          cedula,
+          importancia,
+          estado: estado === "activo",
+          cantidad,
+          id_usuario: usuario.id,
+          id_cargo,
+          id_area: id_area || null,
+          id_empresa,
+        },
+        productos
+      );
+
+      return response.created({
+        mensaje: "Gestión creada correctamente",
+        datos: gestion,
+      });
     } catch (error) {
-      console.error('Error al crear gestión:', error)
-      return response.badRequest({ mensaje: error.message })
+      console.error("Error al crear gestión:", error);
+      return response.badRequest({ mensaje: error.message });
     }
-}
+  }
 
  async listarGestiones({ response, request }: HttpContext) {
   try {
@@ -63,7 +65,7 @@ async crearGestion({ request, response }: HttpContext) {
     const gestiones = await gestionService.listar(empresaId)
     return response.json({ msj: 'listado', datos: gestiones })
   } catch (error) {
-    return response.json({ error: error.message, messages }) // 👈 quitamos "messages"
+    return response.json({ error: error.message, messages })
   }
 }
 
