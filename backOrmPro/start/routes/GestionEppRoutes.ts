@@ -21,4 +21,4 @@ Route.get('/listarGestionesGeneral', gestion.listarGeneral)
 Route.get('/GestionesExcel', gestion.exportarGestionesExcel)
 
 }).use(authJwt.handle.bind(authJwt))
-Route.post('/predict', epp.store)
+Route.post('/ppeCheck', epp.store)
