@@ -32,7 +32,7 @@ export default class GestionEpp extends BaseModel {
   declare importancia: string
 
   @column()
- declare id_cargo: number | null
+  declare id_cargo: number | null
 
   @column()
   declare estado: boolean
