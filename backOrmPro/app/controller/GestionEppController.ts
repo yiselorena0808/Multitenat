@@ -18,25 +18,29 @@ class GestionController {
       cantidad: schema.number.optional(),
       id_area: schema.number.optional(),
       id_empresa: schema.number(),
-      productos: schema.array().members(schema.number()),
+      productos: schema.array().members(schema.object().members({
+        idProducto: schema.number(),
+        cantidad: schema.number()
+      })),
     });
 
     const data = await request.validate({ schema: gestionSchema });
     const usuario = (request as any).user;
 
+    if (!usuario) {
+      return response.unauthorized({ mensaje: "Usuario no autenticado" });
+    }
+
     try {
-      const { cedula, id_cargo, importancia, estado, cantidad, productos, id_area, id_empresa } = data;
+      const { cedula, id_cargo, importancia, estado, cantidad, id_area, id_empresa, productos } = data;
 
-      if (!usuario) {
-        return response.unauthorized({ mensaje: "Usuario no autenticado" });
-      }
-
+      // Crear la gestión principal
       const gestion = await gestionService.crear(
         {
           cedula,
-          importancia,
-          estado: estado === "activo",
-          cantidad,
+          importancia: importancia || 'Media',
+          estado: estado?.toLowerCase() === 'activo' ? true : false,
+          cantidad: cantidad || productos.reduce((sum, p) => sum + p.cantidad, 0),
           id_usuario: usuario.id,
           id_cargo,
           id_area: id_area || null,
@@ -49,50 +53,48 @@ class GestionController {
         mensaje: "Gestión creada correctamente",
         datos: gestion,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al crear gestión:", error);
       return response.badRequest({ mensaje: error.message });
     }
   }
 
- async listarGestiones({ response, request }: HttpContext) {
-  try {
-    const usuario = (request as any).user
-    if (!usuario) {
-      return response.status(401).json({ error: 'Usuario no autenticado' })
+  // Los demás métodos permanecen igual, asegurándose de usar usuario.id y usuario.id_empresa
+  async listarGestiones({ response, request }: HttpContext) {
+    try {
+      const usuario = (request as any).user
+      if (!usuario) return response.status(401).json({ error: 'Usuario no autenticado' })
+      const empresaId = usuario.id_empresa
+      const gestiones = await gestionService.listar(empresaId)
+      return response.json({ msj: 'listado', datos: gestiones })
+    } catch (error) {
+      return response.json({ error: error.message, messages })
     }
-    const empresaId = usuario.id_empresa
-    const gestiones = await gestionService.listar(empresaId)
-    return response.json({ msj: 'listado', datos: gestiones })
-  } catch (error) {
-    return response.json({ error: error.message, messages })
   }
-}
 
-async listarGestionPorId({ params, response, request }: HttpContext) {
-  try {
-    const usuario = (request as any).user 
-    if (!usuario) {
-      return response.status(401).json({ error: 'Usuario no autenticado' })
+  async listarGestionPorId({ params, response, request }: HttpContext) {
+    try {
+      const usuario = (request as any).user 
+      if (!usuario) return response.status(401).json({ error: 'Usuario no autenticado' })
+      const empresaId = usuario.id_empresa
+      const gestion = await gestionService.listarId(Number(params.id), empresaId)
+      if (!gestion) return response.status(404).json({ error: 'Gestión no encontrada' })
+      return response.json({ msj: 'Gestión encontrada', datos: gestion })
+    } catch (error) {
+      return response.json({ error: error.message })
     }
-    const empresaId = usuario.id_empresa
-    const gestion = await gestionService.listarId(Number(params.id), empresaId)
-    if (!gestion) {
-      return response.status(404).json({ error: 'Gestión no encontrada' })
-    }
-    return response.json({ msj: 'Gestión encontrada', datos: gestion })
-  } catch (error) {
-    return response.json({ error: error.message })
   }
-}
 
- async actualizarGestion({ params, request, response }: HttpContext) {
+  async actualizarGestion({ params, request, response }: HttpContext) {
     const gestionSchema = schema.create({
       cedula: schema.string.optional(),
       importancia: schema.string.optional(),
       estado: schema.string.optional(),
       id_area: schema.number.optional(),
-      productosIds: schema.array.optional().members(schema.number()),
+      productosIds: schema.array.optional().members(schema.object().members({
+        idProducto: schema.number(),
+        cantidad: schema.number()
+      })),
       id_cargo: schema.number.optional(),
       cantidad: schema.number.optional(),
     })
@@ -106,7 +108,7 @@ async listarGestionPorId({ params, response, request }: HttpContext) {
         {
           cedula: data.cedula,
           importancia: data.importancia,
-          estado: data.estado === 'activo',
+          estado: data.estado?.toLowerCase() === 'activo' ? true : false,
           cantidad: data.cantidad,
           id_area: data.id_area,
           id_cargo: data.id_cargo,
@@ -119,31 +121,29 @@ async listarGestionPorId({ params, response, request }: HttpContext) {
         mensaje: 'Gestión actualizada correctamente',
         datos: gestion,
       })
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ Error actualizando gestión:', err)
       return response.badRequest({ mensaje: err.message })
     }
   }
 
-async eliminarGestion({ params, response, request }: HttpContext) {
-  try {
-    const usuario = (request as any).user
-    if (!usuario) {
-      return response.status(401).json({ error: 'Usuario no autenticado' })
-    }
-    const empresaId = usuario.id_empresa
-    const resp = await gestionService.eliminar(params.id, empresaId)
-    return response.json({ msj: resp })
-  } catch (error) {
-    return response.json({ error: error.message })
-  }
-}
-
-public async listarMisGestiones ({ request, response}: HttpContext) {
+  async eliminarGestion({ params, response, request }: HttpContext) {
+    try {
       const usuario = (request as any).user
-      if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
+      if (!usuario) return response.status(401).json({ error: 'Usuario no autenticado' })
+      const empresaId = usuario.id_empresa
+      const resp = await gestionService.eliminar(params.id, empresaId)
+      return response.json({ msj: resp })
+    } catch (error: any) {
+      return response.json({ error: error.message })
+    }
+  }
 
-      const filtros = {
+  public async listarMisGestiones ({ request, response}: HttpContext) {
+    const usuario = (request as any).user
+    if (!usuario) return response.status(401).json({ error: "Usuario no autenticado" })
+
+    const filtros = {
       q: request.input('q'),
       estado: request.input('estado'),
       fechaDesde: request.input('fechaDesde'),
@@ -153,18 +153,18 @@ public async listarMisGestiones ({ request, response}: HttpContext) {
       orderBy: request.input('orderBy'),
       orderDir: request.input('orderDir')
     } as any
-    
-      const page = await gestionService.listarUsuario(usuario.id, usuario.id_empresa, filtros)
-      return response.ok({
-        meta: {
-          page: page.currentPage,
-          perPage: page.perPage,
-          total: page.total,
-          lastPage: page.lastPage,
-        },
-        data: page.all(),
-      })
-    }
+
+    const page = await gestionService.listarUsuario(usuario.id, usuario.id_empresa, filtros)
+    return response.ok({
+      meta: {
+        page: page.currentPage,
+        perPage: page.perPage,
+        total: page.total,
+        lastPage: page.lastPage,
+      },
+      data: page.all(),
+    })
+  }
 
   async listarGeneral({ response }: HttpContext) {
     const gestiones = await gestionService.listarGeneral()
@@ -218,6 +218,7 @@ public async listarMisGestiones ({ request, response}: HttpContext) {
       console.error(error)
       return response.status(500).json({ error: 'Error al exportar gestiones EPP' })
     }
-  }}
+  }
+}
 
 export default GestionController
