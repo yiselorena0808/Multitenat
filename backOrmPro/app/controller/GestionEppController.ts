@@ -14,14 +14,11 @@ class GestionController {
       cedula: schema.string(),
       id_cargo: schema.number(),
       importancia: schema.string.optional(),
-      estado: schema.string.optional(),
+      estado: schema.string.optional(), // "activo", "inactivo"
       cantidad: schema.number.optional(),
       id_area: schema.number.optional(),
-      id_empresa: schema.number(),
-      productos: schema.array().members(schema.object().members({
-        idProducto: schema.number(),
-        cantidad: schema.number()
-      })),
+      id_empresa: schema.number.optional(), // ahora es opcional
+      productos: schema.array().members(schema.number()), // array de ids
     });
 
     const data = await request.validate({ schema: gestionSchema });
@@ -32,34 +29,36 @@ class GestionController {
     }
 
     try {
-      const { cedula, id_cargo, importancia, estado, cantidad, id_area, id_empresa, productos } = data;
+      const { cedula, id_cargo, importancia, estado, cantidad, productos, id_area, id_empresa } = data;
 
-      // Crear la gestión principal
+      // Usar el id_empresa enviado desde frontend o el del usuario si no se envía
+      const empresaId = id_empresa ?? usuario.id_empresa;
+
+      // Crear la gestión usando el servicio
       const gestion = await gestionService.crear(
         {
           cedula,
-          importancia: importancia || 'Media',
+          importancia,
           estado: estado?.toLowerCase() === 'activo' ? true : false,
-          cantidad: cantidad || productos.reduce((sum, p) => sum + p.cantidad, 0),
+          cantidad,
           id_usuario: usuario.id,
           id_cargo,
           id_area: id_area || null,
-          id_empresa,
+          id_empresa: empresaId,
         },
         productos
       );
 
       return response.created({
-        mensaje: "Gestión creada correctamente",
+        mensaje: 'Gestión creada correctamente',
         datos: gestion,
       });
     } catch (error: any) {
-      console.error("Error al crear gestión:", error);
+      console.error('Error al crear gestión:', error);
       return response.badRequest({ mensaje: error.message });
     }
   }
 
-  // Los demás métodos permanecen igual, asegurándose de usar usuario.id y usuario.id_empresa
   async listarGestiones({ response, request }: HttpContext) {
     try {
       const usuario = (request as any).user
