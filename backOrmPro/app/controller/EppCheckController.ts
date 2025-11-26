@@ -14,30 +14,25 @@ export default class PpeChecksController {
 
     const context = request.input('context') // "medical" | "industrial"
 
-    if (!["industrial", "medical"].includes(context)) {
-      return response.badRequest({ error: "Contexto inválido" })
+    if (!['industrial', 'medical'].includes(context)) {
+      return response.badRequest({ error: 'Contexto inválido' })
     }
 
     // ---- Preparar imagen para enviar ----
     const formData = new FormData()
     formData.append('file', fs.createReadStream(image.tmpPath), image.clientName)
 
-    let microserviceUrl = ""
-    let model = ""
+    let microserviceUrl = 'http://127.0.0.1:8000/predict'
+    let model = ''
 
-    if (context === "industrial") {
-      // 🌐 MODELO A - NUBE ROBOFLOW
-      microserviceUrl = "http://127.0.0.1:8000/predict"
-      model = "roboflow"
+    if (context === 'industrial') {
+      model = 'roboflow'
     }
 
-    if (context === "medical") {
-      // 🩺 MODELO B - YOLO LOCAL (best.pt)
-      microserviceUrl = "http://127.0.0.1:8000/predict"
-      model = "local"
+    if (context === 'medical') {
+      model = 'local'
     }
 
-    // Agregar parámetro query
     const urlWithParams = `${microserviceUrl}?model=${model}`
 
     let data: any
@@ -47,20 +42,27 @@ export default class PpeChecksController {
         maxBodyLength: Infinity,
       })
       data = res.data
+      console.log('Microservicio respondió:', data)
     } catch (e) {
-      console.error(e)
-      return response.internalServerError({ error: "Microservicio no disponible" })
+        console.error('Error llamando al microservicio:')
+  console.error('  message:', e.message)
+  console.error('  code   :', e.code)
+  console.error('  status :', e.response?.status)
+  console.error('  data   :', e.response?.data)
+
+      return response.internalServerError({ error: 'Microservicio no disponible' })
     }
 
     // 🔥 NORMALIZAR RESPUESTA PARA ANDROID
-    // Tu API devuelve: { model: "...", detections: [...] }
+    // FastAPI ahora devuelve:
+    // { model, detections, detected, missing, is_complete }
     return response.ok({
-      ok: (data.detections && data.detections.length > 0),
-      detected: data.detections?.map((d: any) => d.class) ?? [],
-      missing: [],
-      detections: data.detections ?? [],  // Información completa de bboxes
+      ok: data.is_complete ?? (data.detections && data.detections.length > 0),
+      detected: data.detected ?? data.detections?.map((d: any) => d.class) ?? [],
+      missing: data.missing ?? [],
+      detections: data.detections ?? [],
       model: data.model,
-      context
+      context,
     })
   }
 }
