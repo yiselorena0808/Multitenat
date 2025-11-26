@@ -2,42 +2,36 @@ import GestionEpp from '#models/gestion_epp'
 import Cargo from '#models/cargo'
 
 type Filtros = {
-  q?: string           // búsqueda texto (lugar/descripcion)
+  q?: string
   estado?: string
-  fechaDesde?: string  // YYYY-MM-DD
-  fechaHasta?: string  // YYYY-MM-DD
+  fechaDesde?: string
+  fechaHasta?: string
   page?: number
   perPage?: number
   orderBy?: 'fecha' | 'created_at'
   orderDir?: 'asc' | 'desc'
 }
 
-
 class GestionEppService {
   async crear(
-  datos: Partial<GestionEpp>,
-  usuario: any,
-  id_producto?: number[],   // 👈 opcional
-  id_cargo?: number,
-  id_area?: number          // 👈 opcional si quieres vincular a un cargo específico
-) {
-  const gestion = await GestionEpp.create({
-    ...datos,
-    id_usuario: usuario.id,
-    nombre: usuario.nombre,
-    apellido: usuario.apellido,
-    id_empresa: usuario.id_empresa,
-    id_area: id_area ?? usuario.id_area,
-    id_cargo: id_cargo ?? null,
-  })
+    datos: Partial<GestionEpp>,
+    usuario: any,
+    id_producto?: number[],
+    id_cargo?: number,
+    id_area?: number
+  ) {
+    const gestion = await GestionEpp.create({
+      ...datos,
+      id_area: id_area ?? datos.id_area ?? usuario.id_area,
+      id_cargo: id_cargo ?? datos.id_cargo ?? null,
+    })
 
-  if (id_producto && id_producto.length > 0) {
-    await gestion.related('productos').attach(id_producto)
+    if (id_producto && id_producto.length > 0) {
+      await gestion.related('productos').attach(id_producto)
+    }
+
+    return await gestion.preload('productos')
   }
-
-  return await gestion.preload('productos')
-}
-
   async listar(empresaId: number) {
     return await GestionEpp.query()
       .where('id_empresa', empresaId)

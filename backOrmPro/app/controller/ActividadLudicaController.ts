@@ -16,23 +16,44 @@ export default class ActividadLudicaController {
         return response.unauthorized({ error: 'Usuario no autenticado' })
       }
 
-      const datos = request.only(['nombre_actividad', 'fecha_actividad', 'descripcion']) as any
-      datos.id_usuario = user.id
-      datos.id_empresa = user.id_empresa
-      datos.nombre_usuario = user.nombre
+      const body = request.only([
+        'nombre_actividad',
+        'fecha_actividad',
+        'descripcion',
+        'id_usuario',
+        'id_empresa',
+        'nombre_usuario'
+      ]) as any
+
+      const id_usuario = Number(body.id_usuario) || user.id
+      // Solo usar user.id_empresa si id_empresa es null o undefined
+      const id_empresa =
+        body.id_empresa !== undefined && body.id_empresa !== null && body.id_empresa !== ""
+          ? Number(body.id_empresa)
+          : user.id_empresa
+      const nombre_usuario = body.nombre_usuario || user.nombre
+
+      const datos: any = {
+        nombre_actividad: body.nombre_actividad,
+        fecha_actividad: body.fecha_actividad,
+        descripcion: body.descripcion,
+        id_usuario,
+        id_empresa,
+        nombre_usuario
+      }
 
       // Archivos
       const imagenVideo = request.file('imagen_video', {
         size: '20mb',
         extnames: ['jpg', 'png', 'mp4', 'mov'],
       })
+
       const archivoAdjunto = request.file('archivo_adjunto', {
         size: '10mb',
         extnames: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
       })
 
-      // Subida a Cloudinary si existen
-      if (imagenVideo && imagenVideo.tmpPath) {
+      if (imagenVideo?.tmpPath) {
         const upload = await cloudinary.uploader.upload(imagenVideo.tmpPath, {
           folder: 'actividades',
           resource_type: 'auto',
@@ -40,7 +61,7 @@ export default class ActividadLudicaController {
         datos.imagen_video = upload.secure_url
       }
 
-      if (archivoAdjunto && archivoAdjunto.tmpPath) {
+      if (archivoAdjunto?.tmpPath) {
         const upload = await cloudinary.uploader.upload(archivoAdjunto.tmpPath, {
           folder: 'actividades',
           resource_type: 'auto',
@@ -59,7 +80,6 @@ export default class ActividadLudicaController {
       return response.internalServerError({ error: error.message })
     }
   }
-
   // Listar actividades por empresa
   async listar({ request, response }: HttpContext) {
     try {
@@ -180,4 +200,5 @@ export default class ActividadLudicaController {
       console.error(error)
       return response.status(500).json({ error: 'Error al exportar actividades lúdicas' })
     }
-  }}
+  }
+}
