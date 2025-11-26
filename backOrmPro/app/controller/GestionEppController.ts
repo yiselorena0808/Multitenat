@@ -34,9 +34,11 @@ class GestionController {
       // Usar el id_empresa enviado desde frontend o el del usuario si no se envía
       const empresaId = id_empresa ?? usuario.id_empresa;
 
-      // Crear la gestión usando el servicio
+      // Crear la gestión usando el servicio, incluyendo nombre y apellido
       const gestion = await gestionService.crear(
         {
+          nombre: usuario.nombre ?? "",
+          apellido: usuario.apellido ?? "",
           cedula,
           importancia,
           estado: estado?.toLowerCase() === 'activo' ? true : false,
