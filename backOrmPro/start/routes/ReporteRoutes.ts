@@ -12,6 +12,7 @@ Route.put('/actualizarReporte/:id', reporte.actualizarReporte).use(authJwt.handl
 Route.delete('/eliminarReporte/:id', reporte.eliminarReporte).use(authJwt.handle.bind(authJwt))
 Route.get('/listarUsu', reporte.listarMisReportes).use(authJwt.handle.bind(authJwt))
 Route.get('/listarMio/:id', reporte.mostarMio).use(authJwt.handle.bind(authJwt))
-Route.post('/verificarReporte/:id/sgva', reporte.verificarReporteSGVA).use(authJwt.handle.bind(authJwt))
 Route.get('/listarReportesGeneral', reporte.listarGeneral).use(authJwt.handle.bind(authJwt))
 Route.get('/reportesExcel', reporte.exportarReportesExcel).use(authJwt.handle.bind(authJwt))
+Route.put('/actualizarEstadoConHuella', reporte.actualizarEstadoConHuella).use(authJwt.handle.bind(authJwt))
+Route.post('/verificarReporteSGVA/:id', reporte.verificarReporteSGVA).use(authJwt.handle.bind(authJwt))

@@ -1,7 +1,7 @@
-import Reporte from "#models/reporte"
+import Reporte from '#models/reporte'
 import axios from 'axios'
 import Env from '#start/env'
-import Fingerprint from "#models/fingerprint"
+import Fingerprint from '#models/fingerprint'
 
 export interface DatosReporte {
   id_usuario: number
@@ -128,41 +128,71 @@ export default class ReporteService {
     return reporte
    }
 
- public async verificarHuellaSGVA(
-  reporteId: number,
-  sgvaId: number,
-  huellaCapturada: string
-) {
-  // Obtener reporte
-  const reporte = await Reporte.query()
-    .where('id_reporte', reporteId)
-    .firstOrFail()
+  public async verificarHuellaSGVA(
+    reporteId: number,
+    sgvaId: number,
+    huellaCapturada: string
+  ) {
+    // Obtener reporte
+    const reporte = await Reporte.query()
+      .where('id_reporte', reporteId)
+      .firstOrFail()
 
-  // Obtener huella del SGVA
-  const fingerprint = await Fingerprint.query()
-    .where('id_usuario', sgvaId)
-    .firstOrFail()
+    // Obtener huella del SGVA
+    const fingerprint = await Fingerprint.query()
+      .where('id_usuario', sgvaId)
+      .firstOrFail()
 
-  const sgvaTemplate = Buffer.from(fingerprint.template as string).toString('base64')
+    const sgvaTemplate = Buffer.from(fingerprint.template as string).toString('base64')
 
-  // Llamar a microservicio Python
-  const pythonUrl = Env.get('PYTHON_SERVICE_URL', 'http://localhost:6000')
-  const cmp = await axios.post(`${pythonUrl}/compare`, {
-    t1: huellaCapturada,
-    t2: sgvaTemplate
-  })
+    // Llamar a microservicio Python
+    const pythonUrl = Env.get('PYTHON_SERVICE_URL', 'http://localhost:8000')
+    const cmp = await axios.post(`${pythonUrl}/compare`, {
+      t1: huellaCapturada,
+      t2: sgvaTemplate
+    })
 
-  const score = cmp.data.score
-  const estado = score >= 0.55 ? 'Aceptado' : 'Denegado'
+    const score = cmp.data.score
+    const estado = score >= 0.55 ? 'Aceptado' : 'Denegado'
 
-  // Actualizar estado del reporte y mantener instancia
-  reporte.merge({ estado })
-  await reporte.save()
+    // Actualizar estado del reporte y mantener instancia
+    reporte.merge({ estado })
+    await reporte.save()
 
-  return { estado, score, reporte }
-}
+    return { estado, score, reporte }
+  }
 
-async listarGeneral() {
+  async listarGeneral() {
     return await Reporte.all()
+  }
+
+  public static async actualizarEstadoConHuella(datos: {
+    id_reporte: number;
+    estado: string;
+  }) {
+    try {
+      // Buscar y actualizar el reporte
+      const reporte = await Reporte.query()
+        .where('id_reporte', datos.id_reporte)
+        .firstOrFail();
+
+      reporte.merge({ estado: datos.estado });
+      await reporte.save();
+
+      return {
+        status: 200,
+        body: { 
+          mensaje: "Estado actualizado correctamente", 
+          reporte 
+        }
+      };
+
+    } catch (error) {
+      console.error("Error actualizando estado:", error);
+      return {
+        status: 500,
+        body: { error: "No se pudo actualizar el estado" }
+      };
+    }
   }
 }
