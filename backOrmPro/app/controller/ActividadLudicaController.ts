@@ -8,73 +8,78 @@ import { DateTime } from 'luxon'
 const actividadService = new ActividadLudicaService()
 
 export default class ActividadLudicaController {
-  // Crear actividad lúdica
+// Crear actividad lúdica
   async crearActividad({ request, response }: HttpContext) {
-  try {
-    const user = (request as any).user
-    if (!user) {
-      return response.unauthorized({ error: 'Usuario no autenticado' })
+    try {
+      const user = (request as any).user;
+      if (!user) {
+        return response.unauthorized({ error: 'Usuario no autenticado' });
+      }
+
+      const body = request.only([
+        'nombre_actividad',
+        'fecha_actividad',
+        'descripcion',
+        'id_usuario',
+        'id_empresa',
+        'nombre_usuario'
+      ]) as any;
+
+      const id_usuario = body.id_usuario ? Number(body.id_usuario) : user.id;
+      const id_empresa = body.id_empresa !== undefined && body.id_empresa !== ""
+        ? Number(body.id_empresa)
+        : user.id_empresa;
+
+      const nombre_usuario = body.nombre_usuario || user.nombre;
+
+      const datos: any = {
+        nombre_actividad: body.nombre_actividad,
+        fecha_actividad: body.fecha_actividad,
+        descripcion: body.descripcion,
+        id_usuario,
+        id_empresa,
+        nombre_usuario
+      };
+
+      const imagenVideo = request.file('imagen_video', {
+        size: '20mb',
+        extnames: ['jpg', 'png', 'mp4', 'mov'],
+      });
+
+      const archivoAdjunto = request.file('archivo_adjunto', {
+        size: '10mb',
+        extnames: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
+      });
+
+      if (imagenVideo?.tmpPath) {
+        const upload = await cloudinary.uploader.upload(imagenVideo.tmpPath, {
+          folder: 'actividades',
+          resource_type: 'auto',
+        });
+        datos.imagen_video = upload.secure_url;
+      }
+
+      if (archivoAdjunto?.tmpPath) {
+        const upload = await cloudinary.uploader.upload(archivoAdjunto.tmpPath, {
+          folder: 'actividades',
+          resource_type: 'auto',
+        });
+        datos.archivo_adjunto = upload.secure_url;
+      }
+
+      // Guardar en DB
+      const actividad = await actividadService.crear(datos);
+
+      return response.json({
+        mensaje: 'Actividad creada correctamente',
+        actividad,
+      });
+
+    } catch (error: any) {
+      console.error('Error en crearActividad:', error);
+      return response.internalServerError({ error: error.message });
     }
-
-    const body = request.only([
-      'nombre_actividad',
-      'fecha_actividad',
-      'descripcion',
-      'id_usuario',
-      'id_empresa',
-      'nombre_usuario'
-    ]) as any
-
-    const id_usuario = Number(body.id_usuario) || user.id
-    const id_empresa = Number(body.id_empresa) || user.id_empresa
-    const nombre_usuario = body.nombre_usuario || user.nombre
-
-    const datos: any = {
-      nombre_actividad: body.nombre_actividad,
-      fecha_actividad: body.fecha_actividad,
-      descripcion: body.descripcion,
-      id_usuario,
-      id_empresa,
-      nombre_usuario
-    }
-
-    const imagenVideo = request.file('imagen_video', {
-      size: '20mb',
-      extnames: ['jpg', 'png', 'mp4', 'mov'],
-    })
-
-    const archivoAdjunto = request.file('archivo_adjunto', {
-      size: '10mb',
-      extnames: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
-    })
-
-    if (imagenVideo?.tmpPath) {
-      const upload = await cloudinary.uploader.upload(imagenVideo.tmpPath, {
-        folder: 'actividades',
-        resource_type: 'auto',
-      })
-      datos.imagen_video = upload.secure_url
-    }
-
-    if (archivoAdjunto?.tmpPath) {
-      const upload = await cloudinary.uploader.upload(archivoAdjunto.tmpPath, {
-        folder: 'actividades',
-        resource_type: 'auto',
-      })
-      datos.archivo_adjunto = upload.secure_url
-    }
-
-    const actividad = await actividadService.crear(datos)
-
-    return response.json({
-      mensaje: 'Actividad creada correctamente',
-      actividad,
-    })
-  } catch (error: any) {
-    console.error('Error en crearActividad:', error)
-    return response.internalServerError({ error: error.message })
   }
-}
 
   // Listar actividades por empresa
   async listar({ request, response }: HttpContext) {
