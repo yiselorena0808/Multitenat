@@ -4,8 +4,6 @@ import cloudinary from "#config/cloudinary"
 import axios from 'axios'
 import env from '#start/env'
 import ExcelJS from 'exceljs'
-
-
 import Reporte from "#models/reporte"
 import Fingerprint from "#models/fingerprint"
 import { DateTime } from "luxon"
@@ -22,12 +20,10 @@ export default class ReportesController {
         return response.status(401).json({ error: "Usuario no autenticado" })
       }
 
-      // ✅ IDs como números
       const id_usuario = Number(request.input("id_usuario")) || usuarioAuth.id
       const id_empresa = Number(request.input("id_empresa")) || usuarioAuth.id_empresa
       const nombre_usuario = request.input("nombre_usuario") || usuarioAuth.nombre
 
-      // Datos del reporte
       const datos: DatosReporte = {
         cargo: request.input("cargo"),
         cedula: request.input("cedula"),
@@ -40,10 +36,9 @@ export default class ReportesController {
         nombre_usuario,
       }
 
-      console.log("📦 Datos recibidos:", datos)
-      console.log("👤 Usuario autenticado:", usuarioAuth)
+      console.log("Datos recibidos:", datos)
+      console.log("Usuario autenticado:", usuarioAuth)
 
-      // Archivos opcionales
       const imagenFile = request.file("imagen", {
         size: "5mb",
         extnames: ["jpg", "jpeg", "png"],
@@ -62,7 +57,6 @@ export default class ReportesController {
         return response.badRequest({ error: archivoFile.errors })
       }
 
-      // Subida a Cloudinary (manejo de errores)
       if (imagenFile?.tmpPath) {
         try {
           const upload = await cloudinary.uploader.upload(imagenFile.tmpPath, {
@@ -87,12 +81,11 @@ export default class ReportesController {
         }
       }
 
-      // Guardar en DB
       const reporte = await reporteService.crear(id_empresa, datos)
       return response.json(reporte)
 
     } catch (error: any) {
-      console.error("💥 Error en crearReporte:", error)
+      console.error("Error en crearReporte:", error)
       return response.status(500).json({
         error: "Error interno del servidor",
         detalle: error.message,

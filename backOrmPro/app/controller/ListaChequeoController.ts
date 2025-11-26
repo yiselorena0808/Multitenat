@@ -8,34 +8,62 @@ const listaService = new ListaChequeoService()
 
 export default class ListaChequeoController {
   public async crear({ request, response }: HttpContext) {
-    try {
-      const usuario = (request as any).user
-      if (!usuario) return response.unauthorized({ error: 'Usuario no autenticado' })
-
-      const datos = request.only([
-        'fecha',
-        'hora',
-        'modelo',
-        'marca',
-        'soat',
-        'tecnico',
-        'kilometraje',
-        'placa',
-        'observaciones',
-        'id_usuario',
-        'usuario_nombre',
-        'id_empresa'
-      ])
-
-      const lista = await listaService.crear(datos, usuario)
-
-      return response.json({ message: 'Lista creada correctamente', datos: lista })
-    } catch (error) {
-      console.error(error)
-      return response.internalServerError({ error: 'Error creando la lista de chequeo' })
+  try {
+    const usuarioAuth = (request as any).user
+    if (!usuarioAuth) {
+      return response.unauthorized({ error: 'Usuario no autenticado' })
     }
-  }
+    const body = request.only([
+      'fecha',
+      'hora',
+      'modelo',
+      'marca',
+      'soat',
+      'tecnico',
+      'kilometraje',
+      'placa',
+      'observaciones',
+      'id_usuario',
+      'usuario_nombre',
+      'id_empresa'
+    ])
 
+    const id_usuario = Number(body.id_usuario) || usuarioAuth.id
+    const id_empresa = Number(body.id_empresa) || usuarioAuth.id_empresa
+    const usuario_nombre = body.usuario_nombre || usuarioAuth.nombre
+
+    const datosFinales = {
+      fecha: body.fecha,
+      hora: body.hora,
+      modelo: body.modelo,
+      marca: body.marca,
+      soat: body.soat,
+      tecnico: body.tecnico,
+      kilometraje: body.kilometraje,
+      placa: body.placa,
+      observaciones: body.observaciones,
+      id_usuario,
+      usuario_nombre,
+      id_empresa,
+    }
+      console.log("Datos enviados:", datosFinales)
+      console.log("Usuario autenticado:", usuarioAuth)
+
+       const lista = await listaService.crear(datosFinales, usuarioAuth)
+
+      return response.json({
+        message: 'Lista creada correctamente',
+        datos: lista
+    })
+
+  } catch (error) {
+      console.error("💥 Error creando lista:", error)
+      return response.internalServerError({
+      error: 'Error creando la lista de chequeo',
+      detalle: error.message
+    })
+}
+}
   public async listar({ response, request }: HttpContext) {
     try {
       const usuario = (request as any).user
