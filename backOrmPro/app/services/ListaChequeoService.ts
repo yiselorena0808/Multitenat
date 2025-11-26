@@ -16,8 +16,6 @@ export default class ListaChequeoService {
   public async crear(datos: any, usuario: any) {
     return await ListaChequeo.create({
       ...datos,
-      id_usuario: usuario.id,
-      id_empresa: usuario.id_empresa,
     })
   }
 

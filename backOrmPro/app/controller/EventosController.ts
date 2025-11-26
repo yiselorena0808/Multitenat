@@ -28,23 +28,59 @@ export default class EventosController {
   if (!user) return response.unauthorized({ message: 'Usuario no autenticado' })
 
   // 2️ Campos enviados desde el frontend
-  const data: any = request.only(['titulo', 'descripcion', 'fecha_actividad'])
+  const body: any = request.only([
+    'titulo',
+    'descripcion',
+    'fecha_actividad',
+    'id_usuario',
+    'id_empresa',
+    'nombre_usuario'
+  ])
 
-  if (typeof data.fecha_actividad === 'string') {
-    data.fecha_actividad = new Date(data.fecha_actividad)
+  // ✔ Aplicar prioridades:
+  const id_usuario = Number(body.id_usuario) || user.id
+  const id_empresa = Number(body.id_empresa) || user.id_empresa
+  const nombre_usuario = body.nombre_usuario || user.nombre
+
+  // Convertir fecha si viene como string
+  if (typeof body.fecha_actividad === 'string') {
+    body.fecha_actividad = new Date(body.fecha_actividad)
+  }
+
+  // Construir datos finales
+  const data: any = {
+    titulo: body.titulo,
+    descripcion: body.descripcion,
+    fecha_actividad: body.fecha_actividad,
+    id_usuario,
+    id_empresa,
+    nombre_usuario
   }
 
   // 3️ Archivos (imagen y archivo opcionales)
-  const imagen = request.file('imagen')
-  const archivo = request.file('archivo')
+  const imagen = request.file('imagen', {
+    size: '20mb',
+    extnames: ['jpg', 'png', 'jpeg', 'webp'],
+  })
+
+  const archivo = request.file('archivo', {
+    size: '10mb',
+    extnames: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
+  })
+
   const imagenPath = imagen?.tmpPath
   const archivoPath = archivo?.tmpPath
 
   try {
-    // 4️ Crear publicación
-    const publicacion = await service.createForUserTenant(user, data, archivoPath, imagenPath)
+    // 4️ Crear publicación con tenant del usuario
+    const publicacion = await service.createForUserTenant(
+      { ...user, id_usuario, id_empresa }, // ← garantizamos IDs correctos
+      data,
+      archivoPath,
+      imagenPath
+    )
 
-    // 5️ Enviar notificación a todos los usuarios suscritos al topic "eventos"
+    // 5️ Notificar a topic "eventos"
     await fcm.send({
       topic: 'eventos',
       notification: {
@@ -67,8 +103,6 @@ export default class EventosController {
     })
   }
 }
-
-
 
   async actualizar({ params, request, response }: HttpContext) {
     const data = request.only(['titulo','fecha_actividad','descripcion'])
