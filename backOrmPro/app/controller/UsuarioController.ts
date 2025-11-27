@@ -139,25 +139,26 @@ if (!/[^A-Za-z0-9]/.test(contrasena)) {
     }
   }
 
-  async eliminarUsuario({ params, request, response }: HttpContext) {
+  async eliminarGeneral({ params, request, response }: HttpContext) {
     try {
-      const user = (request as any).user
-      if (!user) return response.unauthorized({ error: 'Usuario no autenticado' })
+      const user = (request as any).user;
+      if (!user) return response.unauthorized({ error: 'Usuario no autenticado' });
 
-      const resultado = await usuarioService.eliminar(params.id, user.id_empresa)
+      const resultado = await usuarioService.eliminarGeneral(params.id);
+
       return response.json({ 
         mensaje: 'Usuario eliminado correctamente',
-        datos: resultado,
-      })
+        datos: resultado 
+      });
     } catch (error) {
-      console.error('Error al eliminar usuario:', error)
-      // Manejar específicamente el error de "no encontrado"
-      if (error.message.includes('no encontrado') || error.message.includes('no autorizado')) {
+      console.error('Error al eliminar usuario:', error);
+
+      if (error.message.includes('no encontrado')) {
         return response.status(404).json({ 
           mensaje: error.message 
-        })
+        });
       }
-      return response.status(500).json({ error: error.message })
+      return response.status(500).json({ error: error.message });
     }
   }
 
