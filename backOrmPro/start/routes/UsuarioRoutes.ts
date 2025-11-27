@@ -11,6 +11,8 @@ Router.get('/usuarios/:id', usuario.listarUsuarioId).use(authJwt.handle.bind(aut
 Router.get('/listarUsuarios/:id_empresa', usuario.listarUsuariosPorEmpresa).use(authJwt.handle.bind(authJwt))
 Router.put('/actualizarUsuario/:id', usuario.actualizarUsuario).use(authJwt.handle.bind(authJwt))
 Router.delete('/eliminarUsuario/:id', usuario.eliminarUsuario).use(authJwt.handle.bind(authJwt))
+Router.delete('/eliminarUsuarioGeneral/:id', usuario.eliminarGeneral).use(authJwt.handle.bind(authJwt))
+
 Router.post('/bulkRegister', usuario.bulkRegister).use(authJwt.handle.bind(authJwt))
 Router.post('/registrarSGVA', usuario.registrarSGVA)
 
