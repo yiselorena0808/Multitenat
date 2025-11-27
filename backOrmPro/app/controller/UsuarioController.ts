@@ -145,9 +145,18 @@ if (!/[^A-Za-z0-9]/.test(contrasena)) {
       if (!user) return response.unauthorized({ error: 'Usuario no autenticado' })
 
       const resultado = await usuarioService.eliminar(params.id, user.id_empresa)
-      return response.json(resultado)
+      return response.json({ 
+        mensaje: 'Usuario eliminado correctamente',
+        datos: resultado,
+      })
     } catch (error) {
       console.error('Error al eliminar usuario:', error)
+      // Manejar específicamente el error de "no encontrado"
+      if (error.message.includes('no encontrado') || error.message.includes('no autorizado')) {
+        return response.status(404).json({ 
+          mensaje: error.message 
+        })
+      }
       return response.status(500).json({ error: error.message })
     }
   }
