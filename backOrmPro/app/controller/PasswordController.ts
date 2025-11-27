@@ -38,7 +38,7 @@ export default class PasswordController {
     await sendBrevoEmail({
       to: usuario.correo_electronico,
       subject: 'Recuperación de contraseña',
-      text: `Haz clic en el siguiente enlace para restablecer tu contraseña: https://tusistema.com/reset-password?token=${token}`,
+      text: `Haz clic en el siguiente enlace para restablecer tu contraseña: https://terminadofrontend.onrender.com/reset-password?token=${token}`,
       // o manda solo el token si harás flujo por código
     })
 
