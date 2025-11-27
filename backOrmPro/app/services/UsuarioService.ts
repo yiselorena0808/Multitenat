@@ -138,6 +138,19 @@ class UsuarioService {
     return usuario
   }
 
+  async eliminar(id: number, empresaId: number) {
+    const usuario = await Usuario.query()
+      .where('id', id)
+      .andWhere('id_empresa', empresaId)
+      .first()
+
+    if (!usuario) {
+      throw new Error('Usuario no encontrado o no autorizado')
+    }
+
+    await usuario.delete()
+    return { mensaje: 'Usuario eliminado correctamente' }
+  }
   async eliminarGeneral(id: number) {
     const usuario = await Usuario.query().where('id', id).first();
 
