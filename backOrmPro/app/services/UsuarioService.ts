@@ -151,6 +151,16 @@ class UsuarioService {
     await usuario.delete()
     return { mensaje: 'Usuario eliminado correctamente' }
   }
+  async eliminarGeneral(id: number) {
+    const usuario = await Usuario.query().where('id', id).first();
+
+    if (!usuario) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    await usuario.delete();
+    return { mensaje: 'Usuario eliminado correctamente' };
+  }
 
   // 🔹 Conteo de usuarios
   async conteo() {
