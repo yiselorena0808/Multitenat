@@ -7,7 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id_face')
       table.integer('id_usuario').unsigned().references('id').inTable('usuarios').notNullable().onDelete('CASCADE')
-      table.specificType('descriptor', 'float8[]').notNullable()
+      table.specificType('descriptor', 'buffer').notNullable()
     })
   }
 
