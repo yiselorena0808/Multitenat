@@ -11,7 +11,7 @@ export default class Face extends BaseModel {
   declare id_usuario: number
   
   @column()
-  declare descriptor: number[]
+  declare descriptor: Buffer
 
   @belongsTo(() => Usuario)
     declare usuario: BelongsTo<typeof Usuario>
