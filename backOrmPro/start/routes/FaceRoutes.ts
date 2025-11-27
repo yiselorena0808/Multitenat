@@ -8,7 +8,6 @@ const faceController = new FaceAuthController();
 
 
 Route.group(() => {
-  Route.post('/register', faceController.register)
+  Route.post('/register', faceController.register).use(authJwt.handle.bind(authJwt))
   Route.post('/login', faceController.login)
 }).prefix('/face') 
-  .use(authJwt.handle.bind(authJwt))
