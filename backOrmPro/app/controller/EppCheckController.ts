@@ -22,7 +22,7 @@ export default class PpeChecksController {
     const formData = new FormData()
     formData.append('file', fs.createReadStream(image.tmpPath), image.clientName)
 
-    let microserviceUrl = 'http://host.docker.internal:8000/predict'
+    let microserviceUrl = 'http://127.0.0.1:8000/predict?model=local'
     let model = ''
 
     if (context === 'industrial') {
