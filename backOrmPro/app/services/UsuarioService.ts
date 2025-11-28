@@ -233,6 +233,33 @@ class UsuarioService {
   async listarGeneral() {
     return await Usuario.all()
   }
+
+  async loginFacial(usuarioId: number) {
+  const usuario = await Usuario.query()
+    .where('id', usuarioId)
+    .preload('empresa')
+    .preload('area')
+    .first()
+
+  if (!usuario) throw new Error('Usuario no encontrado')
+
+  const token = jwt.sign(
+    {
+      id: usuario.id,
+      correoElectronico: usuario.correo_electronico,
+      id_empresa: usuario.id_empresa,
+      nombre: `${usuario.nombre} ${usuario.apellido}`,
+    },
+    SECRET,
+    { expiresIn: '1h' }
+  )
+
+  return { 
+    mensaje: 'Login facial correcto', 
+    token, 
+    user: usuario 
+  }
+}
 }
 
 export default UsuarioService
