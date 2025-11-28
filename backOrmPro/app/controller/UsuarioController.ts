@@ -322,5 +322,21 @@ if (!/[^A-Za-z0-9]/.test(contrasena)) {
     }
   }
 
+  async loginFacial({ request, response }: HttpContext) {
+  try {
+    const { usuario_id } = request.only(['usuario_id'])
+    
+    if (!usuario_id) {
+      return response.badRequest({ error: 'ID de usuario requerido' })
+    }
+
+    const resultado = await usuarioService.loginFacial(usuario_id)
+    return response.json(resultado)
+    
+  } catch (error: any) {
+    console.error('Error en login facial:', error)
+    return response.status(500).json({ error: error.message })
+  }
+}
   
 }
