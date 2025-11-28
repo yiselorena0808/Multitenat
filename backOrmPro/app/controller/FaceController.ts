@@ -1,97 +1,119 @@
 import type { HttpContext } from "@adonisjs/core/http";
-import Face from "../models/face.js";
-import { computeEmbedding, bestMatch } from "#services/FaceOnnx";
-import fs from 'fs/promises';
+import fs from 'fs'
+import axios from 'axios'
+import FormData from 'form-data'
+import Usuario from "#models/usuario";
+
 
 export default class FaceController {
     
-public async enroll({ request, response }: HttpContext) {
-  const idUsuario = Number(request.input('id_usuario'))
-  if (!idUsuario) return response.badRequest({ message: 'Falta id_usuario' })
 
-  const file = request.file('image', { size:'5mb', extnames:['jpg','jpeg','png','webp'] })
-  if (!file) return response.badRequest({ message:'Falta image' })
-  if (!file.isValid) return response.badRequest(file.errors)
+   public async registroCara({ request, response }: HttpContext) {
+    try {
+        console.log('📥 Recibiendo solicitud de registro facial...');
+        
+        const userId = request.input('user_id');
+        console.log('👤 User ID recibido:', userId);
 
-  const buffer = typeof (file as any).toBuffer === 'function'
-    ? await (file as any).toBuffer()
-    : await fs.readFile(file.tmpPath!)
+        const file = request.file('file', {
+            size: '5mb',
+            extnames: ['jpg', 'jpeg', 'png'],
+        });
 
-  const descriptor = await computeEmbedding(buffer)
+        if (!file || !file.tmpPath) {
+            console.log('❌ No se recibió archivo');
+            return response.badRequest('Falta la imagen');
+        }
 
-  await Face.updateOrCreate(
-    { id_usuario: idUsuario },
-    { id_usuario: idUsuario, descriptor }
-  )
+        console.log('📁 Archivo recibido:', file.clientName, file.size);
 
-  return { ok: true, id_usuario: idUsuario, len: descriptor.length }
+        // Leer el archivo y convertirlo a base64
+        const fileBuffer = fs.readFileSync(file.tmpPath);
+        const base64Image = fileBuffer.toString('base64');
+        const imageDataUrl = `data:image/jpeg;base64,${base64Image}`;
+
+        const apiUrl = process.env.FACE_API_URL ?? 'http://127.0.0.1:8000';
+        const faceRegisterUrl = `${apiUrl}/face/register`;
+        console.log('🔗 Conectando con:', faceRegisterUrl);
+
+        // ENVIAR COMO FORMDATA, NO COMO JSON
+        const formData = new FormData();
+        formData.append('id_usuario', userId.toString()); // Cambiar a id_usuario
+        formData.append('image', imageDataUrl);           // Cambiar a image
+
+        console.log('📤 Enviando como FormData...');
+
+        const { data } = await axios.post(faceRegisterUrl, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        console.log('✅ Respuesta del servicio Face ID:', data);
+
+        return response.ok({
+            message: 'Rostro registrado correctamente',
+            data,
+        });
+    } catch (error) {
+        console.error('❌ Error completo en register:', error);
+        console.error('📊 Error response:', error.response?.data);
+        return response.internalServerError('Error registrando rostro: ' + error.message);
+    }
 }
 
-  public async verify({ request, response}: HttpContext) {
-    const file = request.file('image', {
-        size: '5mb',
-        extnames: ['jpg', 'jpeg', 'png', 'webp'],
-    })
-    if (!file) return response.badRequest({ message: 'No se ha proporcionado ninguna imagen' });
-    if (!file.isValid) return response.badRequest(file.errors);
-
-    let buffer: Buffer
-    if (typeof (file as any).toBuffer === 'function'){
-        buffer = await (file as any).toBuffer()
-    } else if (file.tmpPath){
-        buffer = await fs.readFile(file.tmpPath)
-    } else {
-        return response.badRequest({ message: 'No se pudo procesar la imagen' });
-    }
-
+public async loginFacial({ request, response }: HttpContext) {
     try {
-        const query = await computeEmbedding(buffer)
-        const rows = await Face.all()
-        const labeled = rows.map((r) => ({
-            label: r.id_usuario,
-            descriptor: r.descriptor,
-        }))
+        const file = request.file('file', {
+            size: '5mb',
+            extnames: ['jpg', 'jpeg', 'png'],
+        });
 
-        const {label, score} = bestMatch(query, labeled, 0.6)
-        if (label === 'unknown') return {match: null, score}
+        if (!file || !file.tmpPath) {
+            return response.badRequest('Falta la imagen');
+        }
 
-        return { match: {id_usuario: Number(label)}, score }
-    } catch (e:any) {
-        return response.badRequest({message: e?.message ?? 'Error al procesar la imagen'})
-    }
-  }
+        const apiUrl = process.env.FACE_API_URL ?? 'http://127.0.0.1:8000';
+        const faceLoginUrl = `${apiUrl}/face/login`;
 
-  public async verifySelf({auth, request, response}: HttpContext) {
-    const user = auth.user
-    if (!user) return response.unauthorized({ message: 'Usuario no autenticado' });
+        // ENVIAR EL ARCHIVO BINARIO DIRECTAMENTE (igual que en register)
+        const formData = new FormData();
+        formData.append('image', fs.createReadStream(file.tmpPath)); // Archivo binario
 
-    const faceRow = await Face.query().where('id_usuario', user.id).first()
-    if (!faceRow) return response.badRequest({ message: 'El usuario no tiene un rostro registrado' });
+        const { data } = await axios.post(faceLoginUrl, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
 
-    const file = request.file('image', {
-        size: '5mb',
-        extnames: ['jpg', 'jpeg', 'png', 'webp'],
-    })
-    if (!file) return response.badRequest({ message: 'No se ha proporcionado ninguna imagen' });
-    if (!file.isValid) return response.badRequest(file.errors);
-    
-    let buffer: Buffer
-    if (typeof (file as any).toBuffer === 'function') buffer = await (file as any).toBuffer()
-    else if (file.tmpPath) buffer = await fs.readFile(file.tmpPath)
-    else return response.badRequest({ message: 'No se pudo procesar la imagen' });
+        console.log('🔑 Respuesta del servicio facial:', data);
 
-    try {
-        const query = await computeEmbedding(buffer)
-        const {label, score} = bestMatch(
-            query,
-            [{ label: user.id, descriptor: faceRow.descriptor }],
-            0.6
-        )
-        if (label === 'unknown') return { match: false, score }
-        return { match: true, score }
-    } catch (e:any) {
-        return response.badRequest({message: e?.message ?? 'Error al procesar la imagen'})      
-    }
-  }
+        if (!data.authenticated) {
+            return response.unauthorized('Rostro no reconocido');
+        }
+
+        // Buscar usuario por ID que devolvió el microservicio
+        const userId = data.id_usuario || data.user_id;
+        console.log('👤 Buscando usuario ID:', userId);
+        
+        const user = await Usuario.find(userId);
+        if (!user) {
+            console.log('❌ Usuario no encontrado con ID:', userId);
+            return response.unauthorized('Usuario no encontrado');
+        }
+
+        const accessToken = await Usuario.accessTokens.create(user);
+        const token = accessToken.value!.release();
+
+        return {
+            token,
+            type: 'bearer',
+            user,
+        };
+    } catch (error) {
+        console.error('❌ Error completo en login:', error);
+        return response.internalServerError('Error en login con rostro');
+    }
+}
 
 }
