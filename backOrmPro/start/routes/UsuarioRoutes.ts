@@ -1,7 +1,9 @@
 import Router from "@adonisjs/core/services/router"
 import UsuariosController from "../../app/controller/UsuarioController.js"
 import AuthJwt from "#middleware/auth_jwt"
+import FaceController from "../../app/controller/FaceController.js"
 
+const face = new FaceController()
 const usuario = new UsuariosController()
 const authJwt = new AuthJwt()
 
@@ -16,8 +18,8 @@ Router.delete('/eliminarUsuarioGeneral/:id', usuario.eliminarGeneral).use(authJw
 Router.post('/bulkRegister', usuario.bulkRegister).use(authJwt.handle.bind(authJwt))
 Router.post('/registrarSGVA', usuario.registrarSGVA)
 
-Router.post('/face-login', usuario.loginFacial)
-Router.post('/face-register', usuario.registroCara)
+Router.post('/face-login', face.loginFacial)
+Router.post('/face-register', face.registroCara)
 
 
 Router.post('/huella/registrar', usuario.registrarHuella).use(authJwt.handle.bind(authJwt))
