@@ -19,6 +19,5 @@ Route.get('/listarGestionId/:id', gestion.listarGestionPorId)
 Route.get('/listarGestions', gestion.listarMisGestiones)
 Route.get('/listarGestionesGeneral', gestion.listarGeneral)
 Route.get('/GestionesExcel', gestion.exportarGestionesExcel)
-
-}).use(authJwt.handle.bind(authJwt))
 Route.post('/ppeCheck', epp.store)
+}).use(authJwt.handle.bind(authJwt))
