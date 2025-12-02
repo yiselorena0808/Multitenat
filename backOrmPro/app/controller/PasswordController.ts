@@ -2,50 +2,45 @@ import PasswordResetToken from '#models/password_reset_token'
 import Usuario from '#models/usuario'
 import { sendBrevoEmail } from '#services/BrevoService'
 import hash from '@adonisjs/core/services/hash'
-import { randomBytes } from 'crypto'
 import { DateTime } from 'luxon'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class PasswordController {
     public async forgotPassword({ request, response }: HttpContext) {
-    const { correo_electronico } = request.only(['correo_electronico'])
+  const { correo_electronico } = request.only(['correo_electronico'])
 
-    const usuario = await Usuario.findBy('correo_electronico', correo_electronico)
+  const usuario = await Usuario.findBy('correo_electronico', correo_electronico)
 
-    // ✅ Para seguridad, no revelamos si el usuario existe o no.
-    if (!usuario) {
-      return response.ok({
-        message: 'Si el correo existe, se ha enviado un correo con las instrucciones',
-      })
-    }
-
-    // ✅ Opcional pero recomendable: borrar tokens anteriores de este usuario
-    await PasswordResetToken.query().where('user_id', usuario.id).delete()
-
-    // ✅ Token seguro en texto plano (SIN hash, como quieres ahora)
-    const token = randomBytes(32).toString('hex')
-
-    await PasswordResetToken.create({
-      user_id: usuario.id,
-      token,
-      created_at: DateTime.now(),
-      // Más adelante puedes añadir expires_at, etc.
-    })
-
-    // 🔍 Útil durante desarrollo/pruebas
-    console.log('Token de recuperación de contraseña (SOLO DEV):', token)
-
-    await sendBrevoEmail({
-      to: usuario.correo_electronico,
-      subject: 'Recuperación de contraseña',
-      text: `Haz clic en el siguiente enlace para restablecer tu contraseña: https://terminadofrontend.onrender.com/reset-password?token=${token}`,
-      // o manda solo el token si harás flujo por código
-    })
-
+  if (!usuario) {
     return response.ok({
       message: 'Si el correo existe, se ha enviado un correo con las instrucciones',
     })
   }
+
+  await PasswordResetToken.query().where('user_id', usuario.id).delete()
+
+  // ✅ Código de 6 dígitos
+  const token = String(Math.floor(100000 + Math.random() * 900000))
+
+  await PasswordResetToken.create({
+    user_id: usuario.id,
+    token,
+    created_at: DateTime.now(),
+  })
+
+  console.log('Código de recuperación (SOLO DEV):', token)
+
+  await sendBrevoEmail({
+    to: usuario.correo_electronico,
+    subject: 'Recuperación de contraseña',
+    text: `Tu código es ${token}. Escríbelo en la pantalla de recuperación y recuerda no compartirlo con nadie.`,
+  })
+
+  return response.ok({
+    message: 'Si el correo existe, se ha enviado un correo con las instrucciones',
+  })
+}
+
 
   public async resetPassword({ request, response }: HttpContext) {
     const { token, contrasena } = request.only(['token', 'contrasena'])
