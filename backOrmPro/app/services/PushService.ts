@@ -9,7 +9,7 @@ export async function notifyTenantNewEvent(
 ) {
   await fcm.send({
     topic: topicForTenant(tenantId),
-    notification: { title: 'Nuevo evento 🎉', body: `Se creó “${name}”` },
+    notification: { title: 'Nuevo evento disponible', body: `Se creó “${name}”` },
     data: {
       type: 'event',
       tenantId: String(tenantId),
