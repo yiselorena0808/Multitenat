@@ -98,6 +98,7 @@ class UsuarioService {
         correoElectronico: usuario.correo_electronico,
         id_empresa: usuario.id_empresa,
         nombre: `${usuario.nombre} ${usuario.apellido}`,
+        cargo: usuario.cargo,
       },
       SECRET,
       { expiresIn: '1h' }
