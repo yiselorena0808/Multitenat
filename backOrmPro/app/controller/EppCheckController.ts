@@ -26,16 +26,8 @@ export default class PpeChecksController {
     const formData = new FormData()
     formData.append('file', fs.createReadStream(image.tmpPath), image.clientName)
 
-    let microserviceUrl = 'http://host.docker.internal:8000/predict'
-    let model = ''
-
-    if (context === 'industrial') {
-      model = 'roboflow'
-    }
-
-    if (context === 'medical') {
-      model = 'local'
-    }
+    let microserviceUrl = 'http://detector:8000/predict'
+    const model = 'local'
 
     const urlWithParams = `${microserviceUrl}?model=${model}&context=${encodeURIComponent(
       context,
