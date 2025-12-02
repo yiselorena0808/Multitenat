@@ -14,9 +14,13 @@ export default class PpeChecksController {
 
     const context = request.input('context') // "medical" | "industrial"
 
-    if (!['industrial', 'medical'].includes(context)) {
+
+
+    if (!['medical', 'construction', 'security_guard', 'welder'].includes(context)) {
       return response.badRequest({ error: 'Contexto inválido' })
     }
+
+
 
     // ---- Preparar imagen para enviar ----
     const formData = new FormData()
@@ -33,7 +37,9 @@ export default class PpeChecksController {
       model = 'local'
     }
 
-    const urlWithParams = `${microserviceUrl}?model=${model}`
+    const urlWithParams = `${microserviceUrl}?model=${model}&context=${encodeURIComponent(
+      context,
+    )}`
 
     let data: any
     try {
