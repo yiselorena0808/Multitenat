@@ -26,20 +26,15 @@ const CARGO_TO_CONTEXT: Record<string, ContextType> = {
 }
 
 export default class PpeChecksController {
-  public async store({ request, response, auth }: HttpContext) {
+  public async store({ request, response }: HttpContext) {
     const image = request.file('image')
 
     if (!image || !image.tmpPath) {
       return response.badRequest({ error: 'Imagen faltante' })
     }
 
-    let user
-    try {
-     user = await auth.use('api').authenticate()   // 👈 usa el mismo guard que el login
-    } catch (error) {
-     console.error('Error de auth en /ppeCheck:', error)
-     return response.unauthorized({ error: 'Token inválido o expirado' })
-    }
+    const user = (request as any).user
+      if (!user) return response.unauthorized({ error: 'Usuario no autenticado' })
 
      // Verificar que el usuario tenga un cargo asignado
     if (!user.cargo || user.cargo.trim() === '') {
