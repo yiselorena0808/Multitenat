@@ -33,19 +33,20 @@ export default class PpeChecksController {
       return response.badRequest({ error: 'Imagen faltante' })
     }
 
-    // 1) Usuario autenticado
-    const user = await auth.authenticate()
-    if (!user) {
-      return response.unauthorized({ error: 'No autenticado' })
+    let user
+    try {
+     user = await auth.use('api').authenticate()   // 👈 usa el mismo guard que el login
+    } catch (error) {
+     console.error('Error de auth en /ppeCheck:', error)
+     return response.unauthorized({ error: 'Token inválido o expirado' })
     }
 
-    // Verificar que el usuario tenga un cargo asignado
+     // Verificar que el usuario tenga un cargo asignado
     if (!user.cargo || user.cargo.trim() === '') {
-      return response.badRequest({ 
-        error: 'El usuario no tiene cargo asignado' 
-      })
+     return response.badRequest({
+     error: 'El usuario no tiene cargo asignado',
+    })
     }
-
     const cargoNombre = user.cargo.trim().toLowerCase()
     let context: ContextType | undefined = CARGO_TO_CONTEXT[cargoNombre]
 
