@@ -148,9 +148,13 @@ async productosPorCargo(id_cargo: number) {
   return await query.paginate(page, perPage)
 }
 
-  async listarGeneral(){
-    return await GestionEpp.all()
-  }
+async listarGeneral() {
+  return await GestionEpp.query()
+    .preload('empresa')
+    .preload('area')
+    .preload('cargo')
+    .preload('productos')
+}
 
 }
 
