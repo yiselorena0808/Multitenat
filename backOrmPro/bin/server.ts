@@ -49,7 +49,7 @@ ignitor
     const server = createServer(handler)
     
     // Inicializar WebSocket
-    import('#start/routes/Socket').then(({ initializeWebsocket }) => {
+    import('#start/socket').then(({ initializeWebsocket }) => {
       initializeWebsocket(server)
     }).catch(console.error)
     

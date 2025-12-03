@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import ReporteService, { DatosReporte } from '#services/ReporteService'
-import NotificacionService from '#services/notificacion_service'
+import NotificacionService from '#services/NotificacionesService' 
 import cloudinary from '#config/cloudinary'
 import axios from 'axios'
 import env from '#start/env'
@@ -9,7 +9,7 @@ import Reporte from '#models/reporte'
 import Fingerprint from '#models/fingerprint'
 import { DateTime } from 'luxon'
 import Usuario from '#models/usuario'
-import Notificacion from '#models/notificacion'
+import Notificacion from '#models/notificacione'
 import { notificarSG_SST } from '#start/socket'
 
 const stripDataUrl = (s: string) => s.replace(/^data:[^,]+,/, '')
