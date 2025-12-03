@@ -120,9 +120,7 @@ async productosPorCargo(id_cargo: number) {
     .apply((scopes) => scopes.onlyu(id_usuario, id_empresa))
     .preload('empresa')
     .preload('area')
-    .preload('productos', (p) => {
-      p.preload('producto')
-    })
+    .preload('productos')
   if (q) {
     query.where((qb) => {
       qb.whereILike('lugar', `%${q}%`)
