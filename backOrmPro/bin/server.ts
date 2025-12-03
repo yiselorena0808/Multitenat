@@ -11,10 +11,11 @@
 
 import 'reflect-metadata'
 import { Ignitor, prettyPrintError } from '@adonisjs/core'
+import { createServer } from 'node:http'
 
 /**
  * URL to the application root. AdonisJS need it to resolve
- * paths to file and directories for scaffolding commands
+ * paths to file and directories for scaffolding characters
  */
 const APP_ROOT = new URL('../', import.meta.url)
 
@@ -29,18 +30,31 @@ const IMPORTER = (filePath: string) => {
   return import(filePath)
 }
 
-new Ignitor(APP_ROOT, { importer: IMPORTER })
+const ignitor = new Ignitor(APP_ROOT, { importer: IMPORTER })
+
+ignitor
   .tap((app) => {
     app.booting(async () => {
       await import('#start/env')
       const mod = await import('#start/face_models_boot')
       await mod.default
     })
+
     app.listen('SIGTERM', () => app.terminate())
     app.listenIf(app.managedByPm2, 'SIGINT', () => app.terminate())
   })
   .httpServer()
-  .start()
+  .start((handler) => {
+    // Crear servidor HTTP
+    const server = createServer(handler)
+    
+    // Inicializar WebSocket
+    import('#start/socket').then(({ initializeWebsocket }) => {
+      initializeWebsocket(server)
+    }).catch(console.error)
+    
+    return server
+  })
   .catch((error) => {
     process.exitCode = 1
     prettyPrintError(error)

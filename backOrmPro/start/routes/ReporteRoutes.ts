@@ -16,3 +16,8 @@ Route.get('/listarReportesGeneral', reporte.listarGeneral).use(authJwt.handle.bi
 Route.get('/reportesExcel', reporte.exportarReportesExcel).use(authJwt.handle.bind(authJwt))
 Route.put('/actualizarEstadoConHuella', reporte.actualizarEstadoConHuella).use(authJwt.handle.bind(authJwt))
 Route.post('/verificarReporteSGVA/:id', reporte.verificarReporteSGVA).use(authJwt.handle.bind(authJwt))
+Route.get('/notificaciones', reporte.obtenerNotificaciones).use(authJwt.handle.bind(authJwt))
+Route.get('/notificaciones/contador', reporte.obtenerContadorNotificaciones).use(authJwt.handle.bind(authJwt))
+Route.put('/notificaciones/leer-todas', reporte.marcarTodasLeidas).use(authJwt.handle.bind(authJwt))
+Route.put('/notificaciones/:id/leer', reporte.marcarNotificacionLeida).use(authJwt.handle.bind(authJwt))
+Route.delete('/notificaciones/:id', reporte.eliminarNotificacion).use(authJwt.handle.bind(authJwt))

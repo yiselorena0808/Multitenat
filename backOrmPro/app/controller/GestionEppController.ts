@@ -45,7 +45,7 @@ class GestionController {
           cantidad,
           id_usuario: usuario.id,
           id_cargo,
-          id_area: id_area || null,
+          id_area: id_area ,
           id_empresa: empresaId,
         },
         productos
