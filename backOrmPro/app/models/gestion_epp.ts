@@ -46,27 +46,27 @@ export default class GestionEpp extends BaseModel {
   @column()
   declare id_area: number
 
-
-
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  @belongsTo(() => Cargo)
+  @belongsTo(() => Cargo, {
+    foreignKey: 'id_cargo',
+  })
   declare cargo: BelongsTo<typeof Cargo>
 
   @belongsTo(() => Usuario)
   declare usuario: BelongsTo<typeof Usuario>
 
   @belongsTo(() => Empresa, {
-     foreignKey: 'id_empresa',
+    foreignKey: 'id_empresa',
   })
   declare empresa: BelongsTo<typeof Empresa>
 
   @belongsTo(() => Area, {
-      foreignKey: 'id_area',
+    foreignKey: 'id_area',
   })
   declare area: BelongsTo<typeof Area>
 
@@ -77,7 +77,7 @@ export default class GestionEpp extends BaseModel {
   })
   declare productos: ManyToMany<typeof Producto>
 
-       static onlyu = scope((query, userId: number, empresaId: number) => {
-      query.where('id_usuario', userId).andWhere('id_empresa', empresaId)
-    })
+  static onlyu = scope((query, userId: number, empresaId: number) => {
+    query.where('id_usuario', userId).andWhere('id_empresa', empresaId)
+  })
 }
