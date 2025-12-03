@@ -54,7 +54,9 @@ export default class GestionEpp extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  @belongsTo(() => Cargo)
+  @belongsTo(() => Cargo, {
+    foreignKey: 'id_cargo',
+  })
   declare cargo: BelongsTo<typeof Cargo>
 
   @belongsTo(() => Usuario)
