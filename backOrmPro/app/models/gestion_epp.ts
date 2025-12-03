@@ -74,7 +74,6 @@ export default class GestionEpp extends BaseModel {
     pivotTable: 'gestion_epp_productos',
     pivotForeignKey: 'gestion_id',
     pivotRelatedForeignKey: 'producto_id',
-    relatedKey: 'id_producto',
   })
   declare productos: ManyToMany<typeof Producto>
 
