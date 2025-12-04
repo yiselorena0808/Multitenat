@@ -6,7 +6,6 @@ import fs from 'node:fs'
 import jwt from 'jsonwebtoken'
 import env from '#start/env'
 import Usuario from '#models/usuario'
-import { Jimp}  from 'jimp' // 👈 necesitas "esModuleInterop": true en tsconfig
 
 const SECRET = env.get('JWT_SECRET') as string
 
@@ -110,50 +109,6 @@ function buildMissingWithCoordinates(missing: string[], context: ContextType): M
   })
 }
 
-function drawRect(img: any, x: number, y: number, w: number, h: number, color: number) {
-  // borde superior e inferior
-  for (let i = x; i < x + w; i++) {
-    img.setPixelColor(color, i, y)
-    img.setPixelColor(color, i, y + h - 1)
-  }
-  // borde izquierdo y derecho
-  for (let j = y; j < y + h; j++) {
-    img.setPixelColor(color, x, j)
-    img.setPixelColor(color, x + w - 1, j)
-  }
-}
-
-async function generateAnnotatedImage(
-  imagePath: string,
-  missing: MissingItem[]
-): Promise<string | null> {
-  if (!missing.length) return null
-
-  const image = (await Jimp.read(imagePath)) as any
-  const { width, height } = image.bitmap
-
-  // 👇 casteamos Jimp a any para usar las funciones estáticas
-  const RED = (Jimp as any).rgbaToInt(255, 0, 0, 255)
-
-  for (const m of missing) {
-    const { x, y, width: wNorm, height: hNorm } = m.coordinates
-
-    const rectW = Math.round(wNorm * width)
-    const rectH = Math.round(hNorm * height)
-    const centerX = Math.round(x * width)
-    const centerY = Math.round(y * height)
-
-    const x1 = Math.max(0, centerX - Math.round(rectW / 2))
-    const y1 = Math.max(0, centerY - Math.round(rectH / 2))
-
-    drawRect(image, x1, y1, rectW, rectH, RED)
-  }
-
-  const buffer = await image.getBufferAsync((Jimp as any).MIME_JPEG)
-  return buffer.toString('base64')
-}
-
-
 // ===== controller =====
 export default class PpeChecksController {
   public async store({ request, response }: HttpContext) {
@@ -236,16 +191,9 @@ export default class PpeChecksController {
       return response.internalServerError({ error: 'Microservicio no disponible' })
     }
 
-    // 4) coords + imagen anotada
+    // 4) coords (ya sin imagen anotada)
     const missingRaw: string[] = data.missing ?? []
     const missingWithCoordinates = buildMissingWithCoordinates(missingRaw, context)
-
-    let annotatedImage: string | null = null
-    try {
-      annotatedImage = await generateAnnotatedImage(image.tmpPath, missingWithCoordinates)
-    } catch (err) {
-      console.error('Error generando imagen anotada:', err)
-    }
 
     const ok =
       data.is_complete ??
@@ -259,7 +207,7 @@ export default class PpeChecksController {
       detections: data.detections ?? [],
       model: data.model,
       context,
-      annotatedImage, // base64 (data:image/jpeg;base64, ... en el frontend)
+      annotatedImage: null, // por compatibilidad, pero ya no se genera
       message: ok
         ? 'Todos los elementos de protección críticos están presentes'
         : `Faltan ${missingRaw.length} elementos de protección`,
