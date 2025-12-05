@@ -30,7 +30,7 @@ export default class FaceAuthController {
         const base64Image = fileBuffer.toString('base64');
         const imageDataUrl = `data:image/jpeg;base64,${base64Image}`;
 
-        const apiUrl = process.env.FACE_API_URL ?? 'http://127.0.0.1:8000';
+        const apiUrl = process.env.FACE_API_URL ?? 'https://facialsst-production.up.railway.app';
         const faceRegisterUrl = `${apiUrl}/face/register`;
         console.log('🔗 Conectando con:', faceRegisterUrl);
 
@@ -71,7 +71,7 @@ public async login({ request, response }: HttpContext) {
             return response.badRequest('Falta la imagen');
         }
 
-        const apiUrl = process.env.FACE_API_URL ?? 'http://127.0.0.1:8000';
+        const apiUrl = process.env.FACE_API_URL ?? 'https://facialsst-production.up.railway.app';
         const faceLoginUrl = `${apiUrl}/face/login`;
 
         // ENVIAR EL ARCHIVO BINARIO DIRECTAMENTE (igual que en register)
