@@ -1,11 +1,11 @@
 import Notificacion from '#models/notificacione'
 import Usuario from '#models/usuario'
 
-export default class NotificacionService {
+ class NotificacionService {
   public async crearParaSGSST(
     idEmpresa: number,
     mensaje: string,
-    idReporte: number
+    idReporte?: number | null
   ): Promise<void> {
     try {
       // Buscar usuarios SG-SST
@@ -21,7 +21,7 @@ export default class NotificacionService {
         await Notificacion.create({
           usuario_id: usuario.id,
           mensaje: mensaje,
-          id_reporte: idReporte,
+          id_reporte: idReporte ?? null,
           leida: false
         })
       }
@@ -84,3 +84,5 @@ export default class NotificacionService {
       .update({ leida: true })
   }
 }
+
+export default new NotificacionService()
