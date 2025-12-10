@@ -17,7 +17,7 @@ export default class Notificacion extends BaseModel {
   declare mensaje: string
 
   @column()
-  declare id_reporte: number
+  declare id_reporte?: number | null
 
   @column()
   declare leida: boolean

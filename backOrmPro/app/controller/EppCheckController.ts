@@ -6,6 +6,8 @@ import fs from 'node:fs'
 import jwt from 'jsonwebtoken'
 import env from '#start/env'
 import Usuario from '#models/usuario'
+import { notificarSG_SST } from '#start/socket'
+import notificacionService from '#services/NotificacionesService' 
 
 const SECRET = env.get('JWT_SECRET') as string
 
@@ -109,6 +111,8 @@ function buildMissingWithCoordinates(missing: string[], context: ContextType): M
   })
 }
 
+
+
 // ===== controller =====
 export default class PpeChecksController {
   public async store({ request, response }: HttpContext) {
@@ -193,24 +197,69 @@ export default class PpeChecksController {
 
     // 4) coords (ya sin imagen anotada)
     const missingRaw: string[] = data.missing ?? []
-    const missingWithCoordinates = buildMissingWithCoordinates(missingRaw, context)
+const missingWithCoordinates = buildMissingWithCoordinates(missingRaw, context)
 
-    const ok =
-      data.is_complete ??
-      (data.detections && Array.isArray(data.detections) && data.detections.length > 0)
+const ok =
+  data.is_complete ??
+  (data.detections && Array.isArray(data.detections) && data.detections.length > 0)
 
-    return response.ok({
-      ok,
-      detected: data.detected ?? data.detections?.map((d: any) => d.class) ?? [],
-      missing: missingWithCoordinates,
-      missingRaw,
-      detections: data.detections ?? [],
-      model: data.model,
+const responseBody = {
+  ok,
+  detected: data.detected ?? data.detections?.map((d: any) => d.class) ?? [],
+  missing: missingWithCoordinates,
+  missingRaw,
+  detections: data.detections ?? [],
+  model: data.model,
+  context,
+  annotatedImage: null, // por compatibilidad
+  message: ok
+    ? 'Todos los elementos de protección críticos están presentes'
+    : `Faltan ${missingRaw.length} elementos de protección`,
+}
+
+// ⚠️ Si falta EPP, disparamos notificaciones tipo SGSST
+if (!ok && missingRaw.length > 0) {
+  // 1) Sacar empresa y nombre del usuario
+  const id_empresa = (user as any).id_empresa // 🔧 ajusta al nombre real del campo
+  const nombre_usuario =
+    (user as any).nombre ||
+    (user as any).nombre_completo ||
+    (user as any).email ||
+    `Usuario #${user.id}`
+
+  const mensaje = `🦺 Falta EPP para ${nombre_usuario}: ${missingRaw.join(
+    ', '
+  )} (contexto: ${context})`
+
+  // 2) Crear notificación en BD para el rol SGSST (igual que con los reportes)
+  try {
+    await notificacionService.crearParaSGSST(
+      id_empresa,
+      mensaje,
+      null // aquí podrías pasar id_reporte o id_incidente si luego tienes uno
+    )
+  } catch (error) {
+    console.warn('⚠ Error creando notificación de EPP en BD:', error)
+  }
+
+  // 3) Notificación en tiempo real por socket
+  try {
+    notificarSG_SST(id_empresa, mensaje, {
+      tipo: 'ppe_alert',
+      id_usuario: user.id,
+      usuario: nombre_usuario,
       context,
-      annotatedImage: null, // por compatibilidad, pero ya no se genera
-      message: ok
-        ? 'Todos los elementos de protección críticos están presentes'
-        : `Faltan ${missingRaw.length} elementos de protección`,
+      missingRaw,
+      missing: missingWithCoordinates,
+      // si quieres, también puedes enviar el raw de detecciones
+      detecciones: data.detections ?? [],
+      fecha: new Date().toISOString(),
     })
+  } catch (error) {
+    console.warn('⚠ Error enviando notificación de EPP por socket:', error)
+  }
+}
+
+    return response.ok(responseBody)
   }
 }
