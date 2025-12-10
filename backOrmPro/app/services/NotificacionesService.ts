@@ -1,7 +1,7 @@
 import Notificacion from '#models/notificacione'
 import Usuario from '#models/usuario'
 
- class NotificacionService {
+ export default class NotificacionService {
   public async crearParaSGSST(
     idEmpresa: number,
     mensaje: string,
@@ -14,7 +14,7 @@ import Usuario from '#models/usuario'
         .andWhere('cargo', 'SG-SST')
         .select('id')
 
-      console.log(`👥 Usuarios SG-SST encontrados: ${usuariosSGSST.length}`)
+
 
       // Crear notificación para cada usuario
       for (const usuario of usuariosSGSST) {
@@ -85,4 +85,3 @@ import Usuario from '#models/usuario'
   }
 }
 
-export default new NotificacionService()

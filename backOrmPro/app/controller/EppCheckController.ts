@@ -7,9 +7,11 @@ import jwt from 'jsonwebtoken'
 import env from '#start/env'
 import Usuario from '#models/usuario'
 import { notificarSG_SST } from '#start/socket'
-import notificacionService from '#services/NotificacionesService' 
+import NotificacionService from '#services/NotificacionesService' 
 
 const SECRET = env.get('JWT_SECRET') as string
+
+const notificacionService = new NotificacionService()
 
 const VALID_CONTEXTS = ['medical', 'construction', 'security_guard', 'welder'] as const
 type ContextType = (typeof VALID_CONTEXTS)[number]
