@@ -22,6 +22,7 @@ import Usuario from '#models/usuario'
           usuario_id: usuario.id,
           mensaje: mensaje,
           id_reporte: idReporte ?? null,
+          tipo: idReporte ? 'reporte' : 'ppe_alert',
           leida: false
         })
       }
@@ -38,20 +39,26 @@ import Usuario from '#models/usuario'
    * Obtener notificaciones de un usuario
    */
   public async obtenerPorUsuario(
-    usuarioId: number,
-    soloNoLeidas: boolean = true
-  ): Promise<Notificacion[]> {
-    const query = Notificacion.query()
-      .where('usuario_id', usuarioId)
-      .preload('reporte') // Cargar el reporte relacionado
-      .orderBy('fecha', 'desc')
+  usuarioId: number,
+  soloNoLeidas: boolean = true,
+  tipo?: string
+): Promise<Notificacion[]> {
+  const query = Notificacion.query()
+    .where('usuario_id', usuarioId)
+    .preload('reporte')
+    .orderBy('fecha', 'desc')
 
-    if (soloNoLeidas) {
-      query.where('leida', false)
-    }
-
-    return await query.limit(50)
+  if (soloNoLeidas) {
+    query.where('leida', false)
   }
+
+  if (tipo) {
+    query.where('tipo', tipo) // 👈 filtro por tipo (ppe_alert, reporte, etc.)
+  }
+
+  return await query.limit(50)
+}
+
 
   /**
    * Marcar notificación como leída
