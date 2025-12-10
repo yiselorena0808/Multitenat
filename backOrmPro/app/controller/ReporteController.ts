@@ -132,44 +132,50 @@ export default class ReportesController {
 
   // Obtener notificaciones del usuario
   public async obtenerNotificaciones({ request, response }: HttpContext) {
-    try {
-      const usuario = (request as any).user
-      if (!usuario) return response.status(401).json({ error: 'Usuario no autenticado' })
-
-      const { soloNoLeidas = 'true' } = request.qs()
-
-      const notificaciones = await notificacionService.obtenerPorUsuario(
-        usuario.id,
-        soloNoLeidas === 'true'
-      )
-
-      const notificacionesFormateadas = notificaciones.map((notif) => ({
-        id: notif.id,
-        mensaje: notif.mensaje,
-        leida: notif.leida,
-        fecha: notif.fecha.toISO(),
-        id_reporte: notif.id_reporte,
-        reporte: notif.reporte
-          ? {
-              id_reporte: notif.reporte.id_reporte,
-              lugar: notif.reporte.lugar,
-              descripcion: notif.reporte.descripcion,
-              estado: notif.reporte.estado,
-              fecha: notif.reporte.fecha,
-              nombre_usuario: notif.reporte.nombre_usuario,
-            }
-          : null,
-      }))
-
-      return response.json({
-        total: notificaciones.length,
-        notificaciones: notificacionesFormateadas,
-      })
-    } catch (error) {
-      console.error('Error obteniendo notificaciones:', error)
-      return response.status(500).json({ error: 'Error al obtener notificaciones' })
+  try {
+    const usuario = (request as any).user
+    if (!usuario) {
+      return response.status(401).json({ error: 'Usuario no autenticado' })
     }
+
+    // 👇 ahora también leo "tipo" de la query
+    const { soloNoLeidas = 'true', tipo } = request.qs()
+
+    const notificaciones = await notificacionService.obtenerPorUsuario(
+      usuario.id,
+      soloNoLeidas === 'true',
+      tipo // 👈 aquí puede venir 'ppe_alert', 'reporte', etc.
+    )
+
+    const notificacionesFormateadas = notificaciones.map((notif) => ({
+      id: notif.id,
+      mensaje: notif.mensaje,
+      leida: notif.leida,
+      fecha: notif.fecha.toISO(),
+      id_reporte: notif.id_reporte,
+      tipo: notif.tipo, // 👈 importante para el front
+      reporte: notif.reporte
+        ? {
+            id_reporte: notif.reporte.id_reporte,
+            lugar: notif.reporte.lugar,
+            descripcion: notif.reporte.descripcion,
+            estado: notif.reporte.estado,
+            fecha: notif.reporte.fecha,
+            nombre_usuario: notif.reporte.nombre_usuario,
+          }
+        : null,
+    }))
+
+    return response.json({
+      total: notificaciones.length,
+      notificaciones: notificacionesFormateadas,
+    })
+  } catch (error) {
+    console.error('Error obteniendo notificaciones:', error)
+    return response.status(500).json({ error: 'Error al obtener notificaciones' })
   }
+}
+
 
   // Marcar una notificación como leída
   public async marcarNotificacionLeida({ params, request, response }: HttpContext) {

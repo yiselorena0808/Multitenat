@@ -22,6 +22,9 @@ export default class Notificacion extends BaseModel {
   @column()
   declare leida: boolean
 
+  @column()
+  declare tipo?: string | null
+
   @column.dateTime({ autoCreate: true })
   declare fecha: DateTime
 
